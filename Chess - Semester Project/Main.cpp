@@ -2,12 +2,7 @@
 * Last Edited: 5/2/26
 * Author: Armaghan
 * Description:
-		Created the Game class and its member functions.
-		Added and Implemented the following functions:
-		- Game() : Initializes the game state and sets up necessary components.
-		- StartGame() : Function to start the game, initialize necessary components, and enter the game loop.
-		- EndGame() : Function to end the game, clean up resources, and display results.
-		- ~Game() : Destructor to clean up any dynamically allocated memory on game end.
+
 */
 
 // Custom Libraries
