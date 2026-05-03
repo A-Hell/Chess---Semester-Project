@@ -2,12 +2,7 @@
 * Last Edited: 5/2/26
 * Author: Armaghan
 * Description:
-	Implemented the following functions of the Board Class:
-	- Board() : Initializes the chessboard and sets up pieces.
-	- GetPiecePosition(Piece* piece) : Returns the position of a given piece.
-	- setPiecePosition(Piece* piece, Position pos) : Sets the position of a given piece on the board.
-	- movePiece(Position from, Position to) : Moves a piece from one position to another
-	- ~Board() : Cleans up any dynamically allocated memory on game.
+	Initialized the Pieces with Colors and Types.
 */
 
 #include "Board.h"
@@ -18,29 +13,29 @@ Board::Board()
 {
 	// Set the board on default Settings
 	
-	// Set Up White
-	squares[0][0] = new Rook();
-	squares[0][1] = new Knight();
-	squares[0][2] = new Bishop();
-	squares[0][3] = new Queen();
-	squares[0][4] = new King();
-	squares[0][5] = new Bishop();
-	squares[0][6] = new Knight();
-	squares[0][7] = new Rook();
+	// Set Up Black
+	squares[0][0] = new Rook(BLACK);
+	squares[0][1] = new Knight(BLACK);
+	squares[0][2] = new Bishop(BLACK);
+	squares[0][3] = new Queen(BLACK);
+	squares[0][4] = new King(BLACK);
+	squares[0][5] = new Bishop(BLACK);
+	squares[0][6] = new Knight(BLACK);
+	squares[0][7] = new Rook(BLACK);
 	for (int i = 0; i < 8; i++)
-	squares[1][i] = new Pawn();
+	squares[1][i] = new Pawn(BLACK);
 
 	// Set Up White
-	squares[7][0] = new Rook();
-	squares[7][1] = new Knight();
-	squares[7][2] = new Bishop();
-	squares[7][3] = new Queen();
-	squares[7][4] = new King();
-	squares[7][5] = new Bishop();
-	squares[7][6] = new Knight();
-	squares[7][7] = new Rook();
+	squares[7][0] = new Rook(WHITE);
+	squares[7][1] = new Knight(WHITE);
+	squares[7][2] = new Bishop(WHITE);
+	squares[7][3] = new Queen(WHITE);
+	squares[7][4] = new King(WHITE);
+	squares[7][5] = new Bishop(WHITE);
+	squares[7][6] = new Knight(WHITE);
+	squares[7][7] = new Rook(WHITE);
 	for (int i = 0; i < 8; i++)
-	squares[6][i] = new Pawn();
+	squares[6][i] = new Pawn(WHITE);
 
 	// Set the Rest of the board as Empty
 	for (int i = 2; i < 6; i++)
@@ -49,7 +44,7 @@ Board::Board()
 
 }
 
-Position Board::GetPiecePosition(Piece* piece)
+Position Board::GetPiecePosition(Piece* piece) const
 {
 	for (int i = 0; i < 8; i++)
 		for (int j = 0;j < 8; j++)

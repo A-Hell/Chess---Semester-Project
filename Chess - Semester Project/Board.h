@@ -25,7 +25,7 @@ class Board
 public:
 	Board(); // Initializes the chessboard and sets up pieces.
 
-	Position GetPiecePosition(Piece* piece); // Returns the position of a given piece.
+	Position GetPiecePosition(Piece* piece) const; // Returns the position of a given piece.
 	void setPiecePosition(Piece* piece, Position pos); // Sets the position of a given piece on the board.
 	void movePiece(Position from, Position to); // Moves a piece from one position to another
 

@@ -123,15 +123,22 @@ char Queen::getSymbol() const         //Returns the character representation of 
 	char Symbol = 'Q';                 //for Black pieces to follow standard algebraic notation.
 	return (colour == WHITE) ? Symbol : tolower(Symbol);
 }
+
+
 //KING CLASS
+//Default Constructor
+//Creates a default King piece. Calls the base Piece constructor to initialize with default values
 King::King()
 { 
- //Default Constructor
- //Creates a default King piece. Calls the base Piece constructor to initialize with default values
+
 }
-King::King(Color colour) :Piece(colour, KING)           //Parameterized Constructor
-{   //Initializes a King with a specific color and sets its type to King
-    //Parameter colour The color assigned to this King(WHITE or BLACK).
+
+//Parameterized Constructor
+//Initializes a King with a specific color and sets its type to King
+//Parameter colour The color assigned to this King(WHITE or BLACK).
+King::King(Color colour) :Piece(colour, KING) 
+{
+
 }
 char King::getSymbol() const       //Returns the character representation of the King.
 {                                   //Returns an uppercase 'K' for White pieces and a lowercase 'k'
