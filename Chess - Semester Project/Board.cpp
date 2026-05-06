@@ -1,5 +1,5 @@
 /*
-* Last Edited: 5/2/26
+* Last Edited: 5/6/26
 * Author: Armaghan
 * Description:
 	made movePiece function return a boolean to indicate success or failure of the move.
@@ -73,8 +73,21 @@ bool Board::movePiece(Position from, Position to)
 		return false;
 
 	Piece* toMove = squares[from.row][from.col];
-	squares[to.row][to.col] = toMove;
-	squares[from.row][from.col] = nullptr;
+	
+	// Block Invalid Piece Behaviour
+	if (!toMove->isValidMove(from, to, *this))
+		return false;
+
+	// Block Taking Own Piece
+	if (squares[to.row][to.col] && squares[to.row][to.col]->getColor() == toMove->getColor())
+		return false;
+	else
+	{	// Logic for capture / Moving
+		delete squares[to.row][to.col];
+		squares[to.row][to.col] = toMove;
+		squares[from.row][from.col] = nullptr;
+	}
+
 	return true;
 }
 

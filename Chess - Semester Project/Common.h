@@ -2,12 +2,10 @@
 //Contains Global constants and Type Def
 
 /*
-* Last Edited: 5/2/26
+* Last Edited: 5/6/26
 * Author: Armaghan
 * Description:
-	Added Enum for Color and PieceType
-	And a Struct for Position, which will be used as Coordinates.
-	And created Const variables for ANSI codes which will be used for Output Formatting
+	Added Overloaded Equality Operator to Position struct for easy comparison of positions.
 */
 
 #pragma once
@@ -22,7 +20,12 @@ using namespace std;
 
 enum Color { NONE, WHITE, BLACK }; // Enum for the color of the pieces, NONE is used for empty squares.
 enum PieceType { EMPTY, PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING }; // Enum for the type of pieces, EMPTY is used for empty squares.
-struct Position { int row; int col; }; // Struct for representing the position of pieces on the board, with row and column as coordinates.
+struct Position // Struct for representing the position of pieces on the board, with row and column as coordinates.
+{ 
+	int row;
+	int col; 
+	bool operator == (const Position& other) const { return row == other.row && col == other.col; } // Equality operator for easy comparison of positions.
+}; 
 
 // ANSI/style codes
 // Example : cout << BOLD + GREEN + "Hello World!" + RESET << endl;

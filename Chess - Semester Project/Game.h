@@ -2,12 +2,10 @@
 // It is responsible for managing the overall game state, including the game loop, handling user input, and updating the game state accordingly.
 
 /*
-* Last Edited: 5/4/26
+* Last Edited: 5/6/26
 * Author: Armaghan
 * Description:
-		Created a getBoard function.
-		created a generateFrame function - currently in prototype meant for testing purposes
-		added from and to Position Structs to 
+		Added a currentPlayer variable to keep track of whose turn it is, and control piece taking based on it
 */
 
 #pragma once
@@ -21,6 +19,7 @@ class Game
 	Interface interface;
 	Position from;
 	Position to;
+	Color currentPlayer; 
 public:
 	Game();
 
