@@ -77,6 +77,12 @@ void Board::movePiece(Position from, Position to)
 	squares[from.row][to.row] = nullptr;
 }
 
+
+Piece* Board::getPiece(int row, int col) const 
+{ 
+	return squares[row][col]; 
+}
+
 Board::~Board()
 {
 	for (int i = 0; i < 1; i++)

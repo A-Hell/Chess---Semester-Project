@@ -28,6 +28,7 @@ public:
 	Position GetPiecePosition(Piece* piece) const; // Returns the position of a given piece.
 	void setPiecePosition(Piece* piece, Position pos); // Sets the position of a given piece on the board.
 	void movePiece(Position from, Position to); // Moves a piece from one position to another
+	Piece* getPiece(int row, int col) const;// Returns the piece at a specific coordinate (needed Interface)
 
 	~Board(); // Cleans up any dynamically allocated memory on game.
 };

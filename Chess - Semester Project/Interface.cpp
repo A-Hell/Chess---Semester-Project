@@ -1,8 +1,83 @@
 /*
-* Last Edited:
-* Author:
+* Last Edited: 5/5/26
+* Author: Rayyan
 * Description:
-
+    - Updated renderBoard to match the specific ASCII grid style (using +, -, |).
+    - Adjusted coordinate display to match chess notation style (a-h and 1-8).
 */
 
 #include "Interface.h"
+
+void Interface::renderBoard(const Board& board)
+{
+    // Top border logic
+    string horizontalLine = "  +---+---+---+---+---+---+---+---+";
+
+    cout << "\n";
+    for (int r = 0; r < 8; r++)
+    {
+        cout << horizontalLine << "\n";
+
+        cout << (8 - r) << " |";  // Use 8-r to display row numbers from 8 down to 1
+
+        for (int c = 0; c < 8; c++)
+        {
+            Piece* p = board.getPiece(r, c);
+            if (p == nullptr)
+            {
+                cout << "   |"; // Empty square space
+            }
+            else
+            {
+                cout << " " << p->getSymbol() << " |"; // Print the symbol centered in the box
+            }
+        }
+        cout << "\n";
+    }
+
+    cout << horizontalLine << "\n"; // Bottom border
+
+    cout << "    a   b   c   d   e   f   g   h\n"; // Column labels a-h
+}
+
+void Interface::getMoveInput(Position& from, Position& to)
+{
+    string input;
+    cout << "\n" << BOLD << GREEN << "[PLAYER MOVE]" << RESET << endl;
+
+    do {
+        cout << "Enter 'From' coordinates (i.e a7): ";
+        cin >> input;
+
+        if (input.length() < 2 || input.length() > 2)
+            continue;
+        
+        // Parsing input to row , col 
+        from.row = input[1] - 49;
+        from.col = input[0] - 97;
+
+    } while (!isValidInput(from.row, from.col));
+
+    do {
+        cout << "Enter 'To' coordinates (i.e a7): ";
+        cin >> input;
+
+        if (input.length() < 2 || input.length() > 2) // discard improper input
+            continue;
+
+        // Parsing input to row , col 
+        to.row = input[1] - 49;
+        to.col = input[0] - 97;
+
+    } while (!isValidInput(to.row, to.col));
+}
+
+bool Interface::isValidInput(int row, int col)
+{
+    if (row >= 0 && row <= 7 && col >= 0 && col <= 7)
+    {
+        return true;
+    }
+    cout << RED << "Invalid coordinate! Use range 0-7." << RESET << endl;
+    return false;
+}
