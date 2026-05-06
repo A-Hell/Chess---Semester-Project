@@ -2,7 +2,7 @@
 * Last Edited: 5/2/26
 * Author: Armaghan
 * Description:
-	Initialized the Pieces with Colors and Types.
+	made movePiece function return a boolean to indicate success or failure of the move.
 */
 
 #include "Board.h"
@@ -62,19 +62,20 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 	squares[pos.row][pos.col] = piece;
 }
 
-void Board::movePiece(Position from, Position to)
+bool Board::movePiece(Position from, Position to)
 {
 	// Block Invalid Indexes
 	if (from.row < 0 || from.row > 7 || from.col < 0 || from.col > 7 ||
 		to.row < 0 || to.row > 7 || to.col < 0 || to.col > 7)
-		return;
+		return false;
 	// Block Null Piece
 	if (!squares[from.row][from.col])
-		return;
+		return false;
 
 	Piece* toMove = squares[from.row][from.col];
 	squares[to.row][to.col] = toMove;
-	squares[from.row][to.row] = nullptr;
+	squares[from.row][from.col] = nullptr;
+	return true;
 }
 
 

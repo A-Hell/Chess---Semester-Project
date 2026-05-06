@@ -53,7 +53,7 @@ void Interface::getMoveInput(Position& from, Position& to)
             continue;
         
         // Parsing input to row , col 
-        from.row = input[1] - 49;
+        from.row = 7 - (input[1] - 49);
         from.col = input[0] - 97;
 
     } while (!isValidInput(from.row, from.col));
@@ -66,7 +66,7 @@ void Interface::getMoveInput(Position& from, Position& to)
             continue;
 
         // Parsing input to row , col 
-        to.row = input[1] - 49;
+        to.row = 7 - (input[1] - 49);
         to.col = input[0] - 97;
 
     } while (!isValidInput(to.row, to.col));

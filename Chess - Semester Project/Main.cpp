@@ -18,6 +18,5 @@ int main()
 {
 	Game mainGame;
 	mainGame.StartGame();
-	mainGame.generateFrame();
 	mainGame.EndGame();
 }

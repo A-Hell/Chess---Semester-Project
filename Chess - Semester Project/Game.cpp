@@ -18,6 +18,7 @@ Game::Game()
 void Game::StartGame()
 {
 	this->board = new Board;
+	generateFrame();
 }
 
 Board& Game::getBoard()
@@ -27,9 +28,20 @@ Board& Game::getBoard()
 
 void Game::generateFrame()
 {
-	system("cls");
-	interface.renderBoard(*board);
-	interface.getMoveInput(from, to);
+	while (true)
+	{
+		system("cls");
+		interface.renderBoard(*board);
+		interface.getMoveInput(from, to);
+		while (!board->movePiece(from, to))
+		{
+			interface.renderBoard(*board);
+			cout << "Invalid Move! Please try again." << endl;
+			interface.getMoveInput(from, to);
+		}
+		system("pause");
+	}
+
 }
 
 void Game::EndGame()
