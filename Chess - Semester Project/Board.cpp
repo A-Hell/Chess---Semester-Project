@@ -1,8 +1,12 @@
 /*
-* Last Edited: 5/6/26
+* Last Edited: 5/7/26
 * Author: Armaghan
 * Description:
-	made movePiece function return a boolean to indicate success or failure of the move.
+		Implemented: isUnderAttack, Function looks through the array of specified color and calls isValidMove on each active to see if it can reach the specified sqaure
+		Implemented: computeCheck, Function calls isUnderAttack on the coordinates of the King of a specific color to see if it is in danger or not
+		Modified:	Constructor to insure correct standard assigning of ActivePieces
+		Modified:	movePiece to cater to the activePiece array and ensure proper dynamic memory handeling
+					added Logic to compute checks after each move and to block and reverse a move that leads to check
 */
 
 #include "Board.h"
@@ -37,6 +41,17 @@ Board::Board()
 	for (int i = 0; i < 8; i++)
 	squares[6][i] = new Pawn(WHITE);
 
+	// Assign Active Pieces
+	for (int i = 0; i < 8; i++)
+	{
+		// First 8 are the main pieces, next 8 are the pawns
+		activePieceBlack[i] = squares[0][i];
+		activePieceBlack[i+8] = squares[1][i];
+
+		activePieceWhite[i] = squares[7][i];
+		activePieceWhite[i+8] = squares[6][i];
+	}
+
 	// Set the Rest of the board as Empty
 	for (int i = 2; i < 6; i++)
 		for (int j = 0; j < 8; j++)
@@ -62,7 +77,7 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 	squares[pos.row][pos.col] = piece;
 }
 
-bool Board::movePiece(Position from, Position to)
+bool Board::movePiece(Position from, Position to, bool inCheck)
 {
 	// Block Invalid Indexes
 	if (from.row < 0 || from.row > 7 || from.col < 0 || from.col > 7 ||
@@ -82,15 +97,91 @@ bool Board::movePiece(Position from, Position to)
 	if (squares[to.row][to.col] && squares[to.row][to.col]->getColor() == toMove->getColor())
 		return false;
 	else
-	{	// Logic for capture / Moving
-		delete squares[to.row][to.col];
+	{	
+		// store piece being capture for possible reversing of the move
+		Piece* temp = squares[to.row][to.col];
+
+		// Logic for capture
+		if(squares[to.row][to.col])
+		{
+			// Remove piece from active list
+			if (squares[to.row][to.col]->getColor() == WHITE)
+			{
+				for (int i = 0; i < 16; i++)
+					if (squares[to.row][to.col] == activePieceWhite[i])
+						activePieceWhite[i] = nullptr;
+			}
+			else if (squares[to.row][to.col]->getColor() == BLACK)
+			{
+				for (int i = 0; i < 16; i++)
+					if (squares[to.row][to.col] == activePieceBlack[i])
+						activePieceBlack[i] = nullptr;
+			}
+		}
+		// logic for moving
 		squares[to.row][to.col] = toMove;
 		squares[from.row][from.col] = nullptr;
+
+		// if move leads to check reverse it and return false
+		if (computeCheck(toMove->getColor()))
+		{
+			squares[from.row][from.col] = toMove;
+			squares[to.row][to.col] = temp;
+			return false;
+		}
+		else
+		{
+			// Deallocate Captured piece in case of No reverse
+			delete temp;
+		}
+		
 	}
 
 	return true;
 }
 
+bool Board::isUnderAttack(Position pos, Color byColor) const
+{
+	Position piecePos;
+	if (byColor == BLACK)
+		for (int i = 0; i < 16; i++)
+		{
+			if (!activePieceBlack[i])
+				continue;
+			piecePos = GetPiecePosition(activePieceBlack[i]);
+			if (activePieceBlack[i]->isValidMove(piecePos, pos, *this))
+				return true;
+		}
+	else if (byColor == WHITE)
+		for (int i = 0; i < 16; i++)
+		{
+			if (!activePieceWhite[i])
+				continue;
+			piecePos = GetPiecePosition(activePieceWhite[i]);
+			if (activePieceWhite[i]->isValidMove(piecePos, pos, *this))
+				return true;
+		}
+
+	return false;
+}
+
+bool Board::computeCheck(Color on) const
+{
+	if (on == WHITE)
+	{
+		Piece* king = activePieceWhite[4]; // get King
+		if (!king)
+			return false;
+		isUnderAttack(GetPiecePosition(king), BLACK);
+	}
+	else if (on == BLACK)
+	{
+		Piece* king = activePieceBlack[4]; // get King
+		if (!king)
+			return false;
+		isUnderAttack(GetPiecePosition(king), WHITE);
+	}
+}
 
 Piece* Board::getPiece(Position at) const 
 { 
@@ -99,6 +190,7 @@ Piece* Board::getPiece(Position at) const
 
 Board::~Board()
 {
+	// Free Dynamically Allocated Memory for Pieces in the Board
 	for (int i = 0; i < 1; i++)
 		for (int j = 0; j < 8; j++)
 			if (squares[i][j])

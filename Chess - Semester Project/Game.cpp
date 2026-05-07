@@ -86,7 +86,7 @@ bool Game::validatePiece(Position at)
 	// if piece of the color being moved is the same as the player return true
 	if (board->getPiece(at))
 		if (board->getPiece(at)->getColor() == currentPlayer)
-		return true;
+			return true;
 	else
 		return false;
 }

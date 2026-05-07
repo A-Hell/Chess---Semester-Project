@@ -388,6 +388,96 @@ bool Queen::isValidMove(Position from, Position to, const Board& board) const
 		}
 	}
 
+bool Queen::isValidMove(Position from, Position to, const Board& board) const
+{
+
+	// Combines the diagonal movement logic of the Bishop with Rook
+
+	int rowDis = to.row - from.row;
+	int colDis = to.col - from.col;
+
+	bool straightMove = (from.row == to.row || from.col == to.col);
+	bool diagonalMove = (abs(rowDis) == abs(colDis));
+
+	// check if move is either straight or diagonal, if not return false
+	if (!straightMove && !diagonalMove)
+		return false;
+
+	if (straightMove)
+	{
+		// Check for obstacles in the horizontal and vertical path
+		if (rowDis > 0) // check direction of movement
+		{
+			// move down the board
+			for (int i = from.row + 1; i < to.row; i++)
+				if (board.getPiece(Position{ i, from.col }))
+					return false;
+		}
+		else if (rowDis < 0)
+		{
+			// move up the board
+			for (int i = from.row - 1; i > to.row; i--)
+				if (board.getPiece(Position{ i, from.col }))
+					return false;
+		}
+		else if (colDis > 0)
+		{
+			// move right
+			for (int i = from.col + 1; i < to.col; i++)
+				if (board.getPiece(Position{ from.row, i }))
+					return false;
+		}
+		else if (colDis < 0)
+		{
+			// move left
+			for (int i = from.col - 1; i > to.col; i--)
+				if (board.getPiece(Position{ from.row, i }))
+					return false;
+		}
+	}
+
+	// Check for obstacles in the diagonal path
+	if (diagonalMove)
+	{
+		if (rowDis > 0 && colDis > 0)
+		{
+			for (int i = from.row + 1, j = from.col + 1; i < to.row && j < to.col; i++)
+			{
+				if (board.getPiece(Position{ i, j }))
+					return false;
+				j++;
+			}
+		}
+
+		else if (rowDis > 0 && colDis < 0)
+		{
+			for (int i = from.row + 1, j = from.col - 1; i < to.row && j > to.col; i++)
+			{
+				if (board.getPiece(Position{ i, j }))
+					return false;
+				j--;
+			}
+		}
+		else if (rowDis < 0 && colDis < 0)
+		{
+			for (int i = from.row - 1, j = from.col - 1; i > to.row && j > to.col; i--)
+			{
+				if (board.getPiece(Position{ i, j }))
+					return false;
+				j--;
+			}
+		}
+		else if (rowDis < 0 && colDis > 0)
+		{
+			for (int i = from.row - 1, j = from.col + 1; i > to.row && j < to.col; i--)
+			{
+				if (board.getPiece(Position{ i, j }))
+					return false;
+				j++;
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -410,6 +500,28 @@ char King::getSymbol() const       //Returns the character representation of the
 {                                   //Returns an uppercase 'K' for White pieces and a lowercase 'k'
 	char Symbol = 'K';               //for Black pieces to follow standard algebraic notation.
 	return (colour == WHITE) ? Symbol : tolower(Symbol);
+}
+
+bool King::isValidMove(Position from, Position to, const Board& board) const
+{
+	int rowDis = abs(to.row - from.row);
+	int colDis = abs(to.col - from.col);
+	
+	if (rowDis > 1 || colDis > 1)
+		return false;
+
+	return true;
+}
+
+bool King::isValidMove(Position from, Position to, const Board& board) const
+{
+	int rowDis = abs(to.row - from.row);
+	int colDis = abs(to.col - from.col);
+	
+	if (rowDis > 1 || colDis > 1)
+		return false;
+
+	return true;
 }
 
 bool King::isValidMove(Position from, Position to, const Board& board) const
