@@ -3,9 +3,12 @@
 * Last Edited: 5/6/26
 * Author: Armaghan
 * Description:
-*		Implemented genreateFrame and getBoard functions.
-*		updated StartGame to initialize the game state and call generateFrame to start the game loop.
-*		updated generateFrame logic to validate moves.
+*		Implemented the following functions of the Game class:
+* 			validatePiece(Position at) : Checks if the piece at the given position belongs to the current player, returns true if valid, false otherwise.
+*			processTurn() : Validates the move and moves the piece if valid, returns true if successful, false otherwise.
+* 			changeTurn() : Swaps the current player after a successful move.
+* 
+*		Modified generateFrame() to call processTurn and changeTurn to simplify the game loop and make moved piece validate with the player
 */
 
 #include "Game.h"
@@ -41,19 +44,50 @@ void Game::generateFrame()
 
 		// Get input once
 		interface.renderBoard(*board);
+		interface.renderCurrentPlayer(currentPlayer);
 		interface.getMoveInput(from, to);
 
 		// Keep asking for input until a valid move is made
-		while (!board->movePiece(from, to))
+		while (!processTurn())
 		{
+			system("cls");
+
 			interface.renderBoard(*board);
-			cout << "Invalid Move! Please try again." << endl;
+			interface.renderCurrentPlayer(currentPlayer);
+			cout << RED << "Invalid Move! Please try again." << RESET << endl;
+
 			interface.getMoveInput(from, to);
 		}
 
 		system("pause");
+		changeTurn(); // change turn after a successful loop
 	}
 
+}
+
+bool Game::processTurn()
+{
+	if (!validatePiece(from))
+	{
+		cout << RED << "You must move your own piece!" << RESET << endl;
+		return false;
+	}
+
+	if (!board->movePiece(from, to))
+		return false;
+
+	return true;
+}
+
+void Game::changeTurn() { currentPlayer = ((currentPlayer == WHITE) ? BLACK : WHITE); }
+
+bool Game::validatePiece(Position at)
+{
+	// if piece of the color being moved is the same as the player return true
+	if (board->getPiece(at)->getColor() == currentPlayer)
+		return true;
+	else
+		return false;
 }
 
 void Game::EndGame()

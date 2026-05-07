@@ -92,9 +92,9 @@ bool Board::movePiece(Position from, Position to)
 }
 
 
-Piece* Board::getPiece(int row, int col) const 
+Piece* Board::getPiece(Position at) const 
 { 
-	return squares[row][col]; 
+	return squares[at.row][at.col]; 
 }
 
 Board::~Board()

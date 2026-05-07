@@ -1,9 +1,9 @@
 /*
 * Last Edited: 5/7/26
-* Author: Rayyan
+* Author: Armaghan
 * Description:
-    - Updated renderBoard to match the specific ASCII grid style (using +, -, |).
-    - Adjusted coordinate display to match chess notation style (a-h and 1-8).
+	Updated line 24 to use Position instead of separate row and col variables, to match updated getPiece parameters
+	modified line 32 to print colored piece symbols for better visualization of the board.
 */
 
 #include "Interface.h"
@@ -22,14 +22,14 @@ void Interface::renderBoard(const Board& board)
 
         for (int c = 0; c < 8; c++)
         {
-            Piece* p = board.getPiece(r, c);
+            Piece* p = board.getPiece(Position{r, c});
             if (p == nullptr)
             {
                 cout << "   |"; // Empty square space
             }
             else
             {
-                cout << " " << p->getSymbol() << " |"; // Print the symbol centered in the box
+                cout << " " << BOLD + (p->getColor() == WHITE ? WHITE_ : GRAY) << p->getSymbol() << RESET << " |"; // Print the symbol centered in the box
             }
         }
         cout << "\n";
