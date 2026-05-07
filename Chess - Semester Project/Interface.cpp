@@ -1,5 +1,5 @@
 /*
-* Last Edited: 5/5/26
+* Last Edited: 5/7/26
 * Author: Rayyan
 * Description:
     - Updated renderBoard to match the specific ASCII grid style (using +, -, |).
@@ -80,4 +80,9 @@ bool Interface::isValidInput(int row, int col)
     }
     cout << RED << "Invalid coordinate! Use range 0-7." << RESET << endl;
     return false;
+}
+
+void Interface::renderCurrentPlayer(Color currentPlayer)
+{
+    cout << "\n" << BOLD << GREEN << "[CURRENT PLAYER: " << (currentPlayer == WHITE ? (WHITE_ + "WHITE") : (GRAY + "BLACK")) << GREEN + "]" << RESET << endl;
 }
