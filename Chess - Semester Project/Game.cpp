@@ -84,7 +84,8 @@ void Game::changeTurn() { currentPlayer = ((currentPlayer == WHITE) ? BLACK : WH
 bool Game::validatePiece(Position at)
 {
 	// if piece of the color being moved is the same as the player return true
-	if (board->getPiece(at)->getColor() == currentPlayer)
+	if (board->getPiece(at))
+		if (board->getPiece(at)->getColor() == currentPlayer)
 		return true;
 	else
 		return false;
