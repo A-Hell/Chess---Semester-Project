@@ -10,7 +10,6 @@
 
 #include "Board.h"
 
-
 // Default Constructor
 Board::Board()
 {
@@ -81,15 +80,30 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 
 void Board::setupCastlingTest()
 {
-	// Clear the board
+	// Clear the board and delete existing pieces
 	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
 			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	whiteKing = nullptr;
+	blackKing = nullptr;
+
 	// Setup White Castling (Kingside and Queenside)
 	squares[7][4] = new King(WHITE);
 	whiteKing = squares[7][4];
 	squares[7][0] = new Rook(WHITE);
 	squares[7][7] = new Rook(WHITE);
+	squares[6][7] = new Pawn(WHITE);
 
 	// Setup Black Castling (Kingside and Queenside)
 	squares[0][4] = new King(BLACK);
@@ -98,9 +112,18 @@ void Board::setupCastlingTest()
 	squares[0][7] = new Rook(BLACK);
 
 	// Add an enemy piece to test "Castling through check"
-	// Placing a Black Rook on 'd1' (0,3) would block White from Queenside castling
 	squares[1][3] = new Rook(BLACK);
 
+	// Rebuild active piece arrays for accurate attack detection
+	activePieceWhite[0] = squares[7][0];
+	activePieceWhite[1] = squares[7][4];
+	activePieceWhite[2] = squares[7][7];
+	activePieceWhite[3] = squares[6][7];
+
+	activePieceBlack[0] = squares[0][0];
+	activePieceBlack[1] = squares[0][4];
+	activePieceBlack[2] = squares[0][7];
+	activePieceBlack[3] = squares[1][3];
 }
 
 bool Board::movePiece(Position from, Position to, bool ghost )

@@ -136,7 +136,7 @@ Rook::Rook()
 Rook::Rook(Color colour) :Piece(colour, ROOK)   //Parameterized Constructor
 {    //Initializes a ROOK with a specific color and sets its type to ROOK
 	//Parameter colour The color assigned to this Rook(WHITE or BLACK).
-	hasMoved == false;
+	hasMoved = false;
 }
 char Rook::getSymbol() const   //Returns the character representation of the Rook.
 {                             //Returns an uppercase 'R' for White pieces and a lowercase 'r'
@@ -423,10 +423,6 @@ bool King::isValidMove(Position from, Position to, const Board& board) const
 	int rowDis = abs(to.row - from.row);
 	int colDis = abs(to.col - from.col);
 
-	// Normal King Movement
-	if (rowDis > 1 || colDis > 1)
-		return false;
-
 	// Detect Castling Attempt
 	if (rowDis == 0 && colDis == 2)
 	{
@@ -460,9 +456,13 @@ bool King::isValidMove(Position from, Position to, const Board& board) const
 			if (abs(from.col - checkCol) <= 2)
 				if (board.isUnderAttack(currentPosition, (this->colour == WHITE ? BLACK : WHITE)))
 					return false;
+			checkCol += step;
 		}
-		checkCol += step;
 	}
+	// Normal King Movement
+	else if (rowDis > 1 || colDis > 1)
+		return false;
+
 	return true;
 }
 bool King::getMovedStatus() const
