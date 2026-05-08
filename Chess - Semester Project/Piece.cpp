@@ -1,15 +1,14 @@
 /*
-* Last Edited:  5/7/2026
+* Last Edited:  5/8/2026
 * Author:       Amna Akbar
 * Description:
-*		Implemented: Movement logic for all piece classes
-		Pawn: did not implement en' pasant. Pawn can move 2 squares forward on first move, 1 forward in normal moves and 1 in diagonal when capturing
-		Rook: Moves vertical and horizontal within the same row / col
-		Knight: Moves in an L-shape, does not need to detect obstacle in path
-		Bishop: Moves diagnonally where distance from the start position to end position is same in rows and columns
-		Queen: Combined Rook and Bishop Movement
-		King : Can move one square in any direction
-		For Queen, Bishop, Rook and Pawn path blocking was also implemented where encessary
+* - Implemented: hasMoved initialization in King and Rook constructors.
+* - Implemented: Castling Logic in King::isValidMove.
+* 1. Detects 2-square horizontal movement.
+* 2. Validates that King and Rook have not moved previously.
+* 3. Uses board.isUnderAttack to ensure the King does not pass through or land in check.
+* 4. Verifies the path between King and Rook is clear of any pieces.
+* - Refined: Pawn movement to ensure diagonal movement only occurs during enemy captures.
 */
 
 #include "Piece.h"
@@ -130,12 +129,14 @@ bool Pawn::isValidMove(Position from, Position to, const Board& board) const
 //ROOK CLASS
 Rook::Rook()
 {
+	hasMoved = false;
 	//Default Constructor
 	//Creates a default Rook piece. Calls the base Piece constructor to initialize with default values
 }
 Rook::Rook(Color colour) :Piece(colour, ROOK)   //Parameterized Constructor
 {    //Initializes a ROOK with a specific color and sets its type to ROOK
 	//Parameter colour The color assigned to this Rook(WHITE or BLACK).
+	hasMoved == false;
 }
 char Rook::getSymbol() const   //Returns the character representation of the Rook.
 {                             //Returns an uppercase 'R' for White pieces and a lowercase 'r'
@@ -183,7 +184,14 @@ bool Rook::isValidMove(Position from, Position to, const Board& board) const
 
 	return true;
 }
-
+bool Rook::getMovedStatus() const
+{
+	return hasMoved;
+}
+void Rook::setMovedStatus(bool status)
+{
+	hasMoved = status;
+}
 //KNIGHT CLASS
 Knight::Knight()
 {
@@ -395,15 +403,14 @@ bool Queen::isValidMove(Position from, Position to, const Board& board) const
 //Creates a default King piece. Calls the base Piece constructor to initialize with default values
 King::King()
 {
-
+	hasMoved = false;
 }
-
 //Parameterized Constructor
 //Initializes a King with a specific color and sets its type to King
 //Parameter colour The color assigned to this King(WHITE or BLACK).
 King::King(Color colour) :Piece(colour, KING)
 {
-
+	hasMoved = false;
 }
 char King::getSymbol() const       //Returns the character representation of the King.
 {                                   //Returns an uppercase 'K' for White pieces and a lowercase 'k'
@@ -415,9 +422,54 @@ bool King::isValidMove(Position from, Position to, const Board& board) const
 {
 	int rowDis = abs(to.row - from.row);
 	int colDis = abs(to.col - from.col);
-	
+
+	// Normal King Movement
 	if (rowDis > 1 || colDis > 1)
 		return false;
 
+	// Detect Castling Attempt
+	if (rowDis == 0 && colDis == 2)
+	{
+		// 1. King must not have moved
+		if (this->hasMoved)
+			return false;
+
+		// 2. King must not be in check currently
+		if (board.computeCheck(this->colour))
+			return false;
+		int rookCol = (to.col > from.col) ? 7 : 0;
+		Piece* rook = board.getPiece(Position{ from.row, rookCol });
+
+		// 3. Rook must exist, and hasn't moved
+		if (!rook || rook->getType() != ROOK || rook->getColor() != this->colour)
+			return false;
+
+		// 4. Rook must not have moved
+		Rook* r = static_cast<Rook*>(rook);
+		if (r->getMovedStatus())
+			return false;
+
+       // 5. Check the path
+		int step = (to.col > from.col ? 1 : -1);
+		int checkCol = from.col + step;
+		while (checkCol != rookCol)
+		{
+			Position currentPosition = { from.row,checkCol };
+			if (board.getPiece(currentPosition) != nullptr)
+				return false;
+			if (abs(from.col - checkCol) <= 2)
+				if (board.isUnderAttack(currentPosition, (this->colour == WHITE ? BLACK : WHITE)))
+					return false;
+		}
+		checkCol += step;
+	}
 	return true;
+}
+bool King::getMovedStatus() const
+{
+	return hasMoved;
+}
+void King::setMovedStatus(bool status)
+{
+	hasMoved = status;
 }

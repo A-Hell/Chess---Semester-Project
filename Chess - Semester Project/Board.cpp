@@ -1,12 +1,11 @@
 /*
 * Last Edited: 5/8/26
-* Author: Armaghan
+* Author: Amna
 * Description:
-*		Implemented: lookForMoves function to loop through all pieces of a specific color and check if they have any valid moves left, used for checkmate and stalemate detection
-*		Implemented: ghost parameter to movePiece function to allow for checking valid moves without actually moving the piece
-*		Fixed: A critical Bug in computeCheck where it wasn't returning true when king was under attack
-*		Modified: isUnderAttack and lookForMoves to reduce line of codes by implementing the same logic in both functions in one loop and just changing the return value based on the function
-*		Modified: Capture Cleanup to clean up Active Piece array properly and to only delete the piece when the move is not reversed
+*		Modified: movePiece to handle "Double Move" logic for Castling (automatically repositioning the Rook).
+*		Modified: movePiece to detect Pawn Promotion and trigger the replacement of Pawn objects.
+*		Implemented: promotePawn helper function to safely deallocate pawns and update active piece pointers to new Queens.
+*		Implemented: setMovedStatus and getMovedStatus calls to ensure King and Rook cannot castle after their first move.
 */
 
 #include "Board.h"
@@ -80,6 +79,30 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 	squares[pos.row][pos.col] = piece;
 }
 
+void Board::setupCastlingTest()
+{
+	// Clear the board
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			squares[i][j] = nullptr;
+	// Setup White Castling (Kingside and Queenside)
+	squares[7][4] = new King(WHITE);
+	whiteKing = squares[7][4];
+	squares[7][0] = new Rook(WHITE);
+	squares[7][7] = new Rook(WHITE);
+
+	// Setup Black Castling (Kingside and Queenside)
+	squares[0][4] = new King(BLACK);
+	blackKing = squares[0][4];
+	squares[0][0] = new Rook(BLACK);
+	squares[0][7] = new Rook(BLACK);
+
+	// Add an enemy piece to test "Castling through check"
+	// Placing a Black Rook on 'd1' (0,3) would block White from Queenside castling
+	squares[1][3] = new Rook(BLACK);
+
+}
+
 bool Board::movePiece(Position from, Position to, bool ghost )
 {
 	// Block Invalid Indexes
@@ -99,40 +122,69 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 	// Block Taking Own Piece
 	if (squares[to.row][to.col] && squares[to.row][to.col]->getColor() == toMove->getColor())
 		return false;
+	
+	// store piece being capture for possible reversing of the move
+	Piece* temp = squares[to.row][to.col];
+
+    // logic for moving / capture
+	squares[to.row][to.col] = toMove;
+	squares[from.row][from.col] = nullptr;
+
+	// if move leads to check reverse it and return false
+	if (computeCheck(toMove->getColor()))
+	{
+		squares[from.row][from.col] = toMove;
+		squares[to.row][to.col] = temp;
+		return false;
+	}
+	else if (ghost)
+	{
+		// ghost case to check for valid moves without actually moving
+		squares[from.row][from.col] = toMove;
+		squares[to.row][to.col] = temp;
+	}
 	else
-	{	
-		// store piece being capture for possible reversing of the move
-		Piece* temp = squares[to.row][to.col];
+	{
+		// --- CASTLING ROOK REPOSITIONING ---
+		// If a King moved 2 squares, we must move the Rook as well
+		if (toMove->getType() == KING && abs(to.col - from.col) == 2)
+		{
+			int rookOldCol = (to.col > from.col) ? 7 : 0;
+			int rookNewCol = (to.col > from.col) ? 5 : 3;
 
-		// logic for moving / capture
-		squares[to.row][to.col] = toMove;
-		squares[from.row][from.col] = nullptr;
+			Piece* castlingRook = squares[from.row][rookOldCol];
+			squares[from.row][rookNewCol] = castlingRook;
+			squares[from.row][rookOldCol] = nullptr;
 
-		// if move leads to check reverse it and return false
-		if (computeCheck(toMove->getColor()))
-		{
-			squares[from.row][from.col] = toMove;
-			squares[to.row][to.col] = temp;
-			return false;
+			// Mark the Rook as moved
+			static_cast<Rook*>(castlingRook)->setMovedStatus(true);
 		}
-		else if (ghost)
+
+		// Deallocate Captured piece in case of No reverse
+		if (temp)
 		{
-			// ghost case to check for valid moves without actually moving
-			squares[from.row][from.col] = toMove;
-			squares[to.row][to.col] = temp;
+			// Remove piece from active list
+			Piece**  activePieces = (temp->getColor() == BLACK) ? activePieceBlack : activePieceWhite;
+			for (int i = 0; i < 16; i++)
+				if (temp == activePieces[i])
+					activePieces[i] = nullptr;
 		}
-		else
+		delete temp;
+
+		// Safely checks whether the moved piece is a King.
+        // dynamic_cast returns nullptr if the piece is not actually a King.
+		King* king = dynamic_cast<King*>(toMove);
+		if (king)
 		{
-			// Deallocate Captured piece in case of No reverse
-			if (temp)
-			{
-				// Remove piece from active list
-				Piece**  activePieces = (temp->getColor() == BLACK) ? activePieceBlack : activePieceWhite;
-				for (int i = 0; i < 16; i++)
-					if (temp == activePieces[i])
-						activePieces[i] = nullptr;
-			}
-			delete temp;
+			king->setMovedStatus(true);
+		}
+
+		// Safely checks whether the moved piece is a Rook.
+        // dynamic_cast returns nullptr if the piece is not actually a Rook.
+		Rook* rook = dynamic_cast<Rook*>(toMove);
+		if (rook)
+		{
+			rook->setMovedStatus(true);
 		}
 		
 	}
@@ -205,7 +257,7 @@ Piece* Board::getPiece(Position at) const
 Board::~Board()
 {
 	// Free Dynamically Allocated Memory for Pieces in the Board
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 8; i++)
 		for (int j = 0; j < 8; j++)
 			if (squares[i][j])
 				delete (squares[i][j]);

@@ -4,9 +4,11 @@
 
 /*
 * Last Edited: 5/7/26
-* Author: Amna Akbar
+* Author: Amna 
 * Description:
-	Implemented isValidMove logic for all derived piece classes
+*- Added: hasMoved boolean flag to Piece base class to track movement history.
+* - Added: getMovedStatus() and setMovedStatus() for King and Rook classes.
+* - Modified: King::isValidMove to include multi-step validation for Castling (Path check, Attack check, and Initial State check).
 */
 
 #pragma once
@@ -48,12 +50,18 @@ public:
 
 class Rook : public Piece
 {
+private: 
+	bool hasMoved;      // Tracks whether the rook has moved before, required for castling validation
 public:
 	Rook();
 	Rook(Color colour);
 
 	char getSymbol() const override;
 	bool isValidMove(Position from, Position to, const Board& board) const override;
+
+	// Movement tracking functions
+	bool getMovedStatus() const;    // Returns whether the rook has moved at least once during the game
+	void setMovedStatus(bool status);  // Updates the rook movement status after a successful move
 };
 
 class Knight : public Piece
@@ -88,10 +96,16 @@ public:
 
 class King : public Piece
 {
+private:
+	bool hasMoved;       // Tracks whether the rook has moved before, required for castling validation
 public:
 	King();
 	King(Color colour);
 
 	char getSymbol() const override;
 	bool isValidMove(Position from, Position to, const Board& board) const override;
+
+	// Movement tracking functions
+	bool getMovedStatus() const;   // Returns whether the king has moved at least once during the game
+	void setMovedStatus(bool status);  // Updates the king movement status after a successful move
 };
