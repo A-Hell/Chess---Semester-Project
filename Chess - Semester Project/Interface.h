@@ -5,10 +5,8 @@
 * Last Edited: 5/7/26
 * Author: Rayyan
 * Description:
-    - Added renderBoard to visualize the 8x8 grid.
-    - Added getMoveInput to capture 'From' and 'To' coordinates from the console.
-    - Added isValidInput for basic 0-7 coordinate validation.
-    - Added Function in interface to display current player
+    - Added: renderCheckAlert to display a check alert if the current player is in check.
+    - Added: renderHeader to display a header at the start of the game
 */
 
 #pragma once
@@ -18,11 +16,15 @@
 class Interface
 {
 public:
-    void renderBoard(const Board& board); // Prints the board to the console
+    void renderHeader();
+
+    void renderBoard(const Board& board, bool isCheck = false); // Prints the board to the console
 
     void getMoveInput(Position& from, Position& to); // captures user coordinates
-    
+
     bool isValidInput(int row, int col);  // Ensures the user doesn't enter coordinates outside 0-7
 
     void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
+
+    void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
 };

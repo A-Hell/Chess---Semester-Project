@@ -2,34 +2,50 @@
 * Last Edited: 5/7/26
 * Author: Armaghan
 * Description:
-	Updated line 24 to use Position instead of separate row and col variables, to match updated getPiece parameters
-	modified line 32 to print colored piece symbols for better visualization of the board.
+        Modified: renderBoard to output a colored Chess board which changes color when the player is in check
+*       Implemented: renderCheckAlert to display a check alert if the current player is in check.
+*       Implemented: renderHeader to display a header at the start of the game
 */
 
 #include "Interface.h"
 
-void Interface::renderBoard(const Board& board)
+void Interface::renderHeader()
+{
+    cout << BOLD << DCYAN << R"(
+    ____  _   _  ____  ____  ____  
+   / ___|| | | ||  __|| __/ / ___| 
+  | |    | |_| || |__ | |__  \ \   
+  | |    |  _  ||  __||  __|  \ \  
+  | |___ | | | || |__ | |__  __\ \ 
+   \____||_| |_||____||____||____/ 
+                                     
+  =================================
+  -----------Scroll down!----------
+    )" << RESET;
+}
+
+void Interface::renderBoard(const Board& board, bool isCheck)
 {
     // Top border logic
-    string horizontalLine = "  +---+---+---+---+---+---+---+---+";
+    string horizontalLine = (isCheck ? RED : CYAN) + "  +---+---+---+---+---+---+---+---+" + RESET;
 
     cout << "\n";
     for (int r = 0; r < 8; r++)
     {
         cout << horizontalLine << "\n";
 
-        cout << (8 - r) << " |";  // Use 8-r to display row numbers from 8 down to 1
+        cout << BOLD << (8 - r) << RESET << (isCheck ? RED : CYAN) + " |" + RESET;  // Use 8-r to display row numbers from 8 down to 1
 
         for (int c = 0; c < 8; c++)
         {
-            Piece* p = board.getPiece(Position{r, c});
+            Piece* p = board.getPiece(Position{ r, c });
             if (p == nullptr)
             {
-                cout << "   |"; // Empty square space
+                cout << (isCheck ? RED : CYAN) + "   |" + RESET; // Empty square space
             }
             else
             {
-                cout << " " << BOLD + (p->getColor() == WHITE ? WHITE_ : GRAY) << p->getSymbol() << RESET << " |"; // Print the symbol centered in the box
+                cout << " " << (p->getColor() == WHITE ? WHITE_ : GRAY) << p->getSymbol() << RESET << (isCheck ? RED : CYAN) + " |" + RESET; // Print the symbol centered in the box
             }
         }
         cout << "\n";
@@ -37,39 +53,31 @@ void Interface::renderBoard(const Board& board)
 
     cout << horizontalLine << "\n"; // Bottom border
 
-    cout << "    a   b   c   d   e   f   g   h\n"; // Column labels a-h
+    cout << BOLD + "    a   b   c   d   e   f   g   h\n" + RESET; // Column labels a-h
 }
 
 void Interface::getMoveInput(Position& from, Position& to)
 {
-    string input;
+    string inputFrom, inputTo;
     cout << "\n" << BOLD << GREEN << "[PLAYER MOVE]" << RESET << endl;
 
     do {
-        cout << "Enter 'From' coordinates (i.e a7): ";
-        cin >> input;
+        cout << BOLD + DCYAN + "Enter coordinates (i.e a7 a5): " + YELLOW;
+        cin >> inputFrom >> inputTo;
+        cout << RESET;
 
-        if (input.length() < 2 || input.length() > 2)
-            continue;
-        
-        // Parsing input to row , col 
-        from.row = 7 - (input[1] - 49);
-        from.col = input[0] - 97;
-
-    } while (!isValidInput(from.row, from.col));
-
-    do {
-        cout << "Enter 'To' coordinates (i.e a7): ";
-        cin >> input;
-
-        if (input.length() < 2 || input.length() > 2) // discard improper input
+        if (inputFrom.length() < 2 || inputFrom.length() > 2 || inputTo.length() < 2 || inputTo.length() > 2)
             continue;
 
         // Parsing input to row , col 
-        to.row = 7 - (input[1] - 49);
-        to.col = input[0] - 97;
+        from.row = 7 - (inputFrom[1] - '1');
+        from.col = inputFrom[0] - 'a';
 
-    } while (!isValidInput(to.row, to.col));
+        to.row = 7 - (inputTo[1] - '1');
+        to.col = inputTo[0] - 'a';
+
+    } while (!isValidInput(from.row, from.col) || !isValidInput(to.row, to.col));
+
 }
 
 bool Interface::isValidInput(int row, int col)
@@ -85,4 +93,10 @@ bool Interface::isValidInput(int row, int col)
 void Interface::renderCurrentPlayer(Color currentPlayer)
 {
     cout << "\n" << BOLD << GREEN << "[CURRENT PLAYER: " << (currentPlayer == WHITE ? (WHITE_ + "WHITE") : (GRAY + "BLACK")) << GREEN + "]" << RESET << endl;
+}
+
+void Interface::renderCheckAlert(bool inCheck)
+{
+    if (inCheck)
+        cout << "\n" << BOLD << RED << "[CHECK ALERT: Your King is in Danger!]" << RESET;
 }
