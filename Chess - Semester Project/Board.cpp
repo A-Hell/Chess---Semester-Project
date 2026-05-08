@@ -9,6 +9,7 @@
 */
 
 #include "Board.h"
+#include "Interface.h"
 
 // Default Constructor
 Board::Board()

@@ -1,10 +1,8 @@
 /*
-* Last Edited: 5/7/26
+* Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-        Modified: renderBoard to output a colored Chess board which changes color when the player is in check
-*       Implemented: renderCheckAlert to display a check alert if the current player is in check.
-*       Implemented: renderHeader to display a header at the start of the game
+		Implemented: getPromotionInput to get user input for pawn promotion, ensuring only valid piece types (Q/R/B/N) are accepted and returned as PieceType enums.
 */
 
 #include "Interface.h"
@@ -99,4 +97,33 @@ void Interface::renderCheckAlert(bool inCheck)
 {
     if (inCheck)
         cout << "\n" << BOLD << RED << "[CHECK ALERT: Your King is in Danger!]" << RESET;
+}
+
+PieceType Interface::getPromotionInput()
+{
+    string input;
+	PieceType output = EMPTY;
+    do 
+    {
+        cout << "\n" << BOLD << GREEN << "[PAWN PROMOTION]" << RESET << endl;
+        cout << BOLD + DCYAN + "Promote to (Q/R/B/N): " + YELLOW;
+        cin >> input;
+        cout << RESET;
+        if (input.length() != 1)
+            output =  EMPTY;
+        else
+        {
+            char choice = toupper(input[0]);
+            switch (choice)
+            {
+            case 'Q': return QUEEN;
+            case 'R': return ROOK;
+            case 'B': return BISHOP;
+            case 'N': return KNIGHT;
+            default: return EMPTY;
+            }
+        }
+	} while (output == EMPTY);
+    
+    return output;
 }

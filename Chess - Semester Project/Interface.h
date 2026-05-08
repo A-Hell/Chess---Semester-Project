@@ -5,15 +5,14 @@
 * Last Edited: 5/7/26
 * Author: Rayyan
 * Description:
-    - Added: renderCheckAlert to display a check alert if the current player is in check.
-    - Added: renderHeader to display a header at the start of the game
+	- Added getPromotionInput to capture user input for pawn promotion, and return selected PieceType as an enum.
 */
 
 #pragma once
 #include "Common.h"
 #include "Board.h"
 
-class Interface
+static class Interface
 {
 public:
     void renderHeader();
@@ -27,4 +26,6 @@ public:
     void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
 
     void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
+
+	static PieceType getPromotionInput(); // Captures user input for pawn promotion
 };
