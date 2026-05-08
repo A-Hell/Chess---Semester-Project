@@ -17,8 +17,8 @@ Game::Game()
 	to = { -1,-1 };
 	currentPlayer = WHITE;
 	inCheck = false;
-	bool Checkmate = false;
-	bool Stalemate = false;
+	Checkmate = false;
+	Stalemate = false;
 }
 
 void Game::StartGame()
@@ -28,8 +28,8 @@ void Game::StartGame()
 	to = { -1,-1 };
 	currentPlayer = WHITE;
 	inCheck = false;
-	bool Checkmate = false;
-	bool Stalemate = false;
+	Checkmate = false;
+	Stalemate = false;
 	gameLoop(); // Start the main game loop
 }
 

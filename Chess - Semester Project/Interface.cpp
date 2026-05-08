@@ -102,28 +102,34 @@ void Interface::renderCheckAlert(bool inCheck)
 PieceType Interface::getPromotionInput()
 {
     string input;
-	PieceType output = EMPTY;
-    do 
+	
+    while(true)
     {
         cout << "\n" << BOLD << GREEN << "[PAWN PROMOTION]" << RESET << endl;
         cout << BOLD + DCYAN + "Promote to (Q/R/B/N): " + YELLOW;
         cin >> input;
         cout << RESET;
         if (input.length() != 1)
-            output =  EMPTY;
-        else
         {
-            char choice = toupper(input[0]);
-            switch (choice)
-            {
-            case 'Q': return QUEEN;
-            case 'R': return ROOK;
-            case 'B': return BISHOP;
-            case 'N': return KNIGHT;
-            default: return EMPTY;
-            }
+            cout << RED << "Invalid Input! Please enter a single letter (Q/R/B/N)" << RESET << endl;
+            continue;
         }
-	} while (output == EMPTY);
-    
-    return output;
+
+        char choice = toupper(input[0]);
+        switch (choice)
+        {
+        case 'Q': 
+            return QUEEN;
+        case 'R':
+            return ROOK;
+        case 'B':
+            return BISHOP;
+        case 'N': 
+            return KNIGHT;
+        default: 
+            cout << RED << "Invalid choice! Please choose Q (Queen), R (Rook), B (Bishop), or N (Knight)." << RESET << endl;
+            break;
+        }
+        
+	} 
 }

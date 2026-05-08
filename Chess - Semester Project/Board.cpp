@@ -73,7 +73,7 @@ Position Board::GetPiecePosition(Piece* piece) const
 void Board::setPiecePosition(Piece* piece, Position pos)
 {
 	// Block Invalid Indexes and Null Piece
-	if (pos.row < 0 || pos.row > 7 || pos.col < 0 || pos.col > 8 || !piece)
+	if (pos.row < 0 || pos.row > 7 || pos.col < 0 || pos.col > 7 || !piece)
 		return;
 
 	squares[pos.row][pos.col] = piece;
@@ -212,6 +212,20 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 		}
 		
 	}
+	// --- PAWN PROMOTION DETECTION ---
+	Pawn* pawn = dynamic_cast<Pawn*>(toMove);
+	if (pawn && !ghost)
+	{
+		// White promotes at the top (row 0), Black at the bottom (row 7)
+		bool whitePromotion = (pawn->getColor() == WHITE && to.row == 0);
+		bool blackPromotion = (pawn->getColor() == BLACK && to.row == 7);
+
+		if (whitePromotion || blackPromotion)
+		{
+			PieceType promotionChoice = Interface::getPromotionInput();
+			promotePawn(to, promotionChoice);
+		}
+	}
 
 	return true;
 }
@@ -271,6 +285,65 @@ bool Board::lookForMoves(Color on)
 
 	}
 	return false;
+}
+
+void Board::promotePawn(Position position, PieceType promotionType)
+{
+	// 1. Get the pawn currently at the promotion square
+	Piece* oldPawn = squares[position.row][position.col];
+	if (!oldPawn || oldPawn->getType() != PAWN)
+		return;
+
+	Color pawnColor = oldPawn->getColor();
+	Piece* promotedPiece = nullptr;
+
+	// 2. Create the new piece object based on the user's choice
+	switch (promotionType)
+	{
+	case QUEEN:
+	{
+		promotedPiece = new Queen(pawnColor);
+		break;
+	}
+	case ROOK:
+	{
+		promotedPiece = new Rook(pawnColor);
+		break;
+	}
+	case BISHOP:
+	{
+		promotedPiece = new Bishop(pawnColor);
+		break;
+	}
+	case KNIGHT:
+	{
+		promotedPiece = new Knight(pawnColor);
+		break;
+	}
+	default:
+	{
+		promotedPiece = new Queen(pawnColor);
+		break;
+	}
+
+	}
+
+	// 3. Update the Active Piece Array
+	Piece** activePieces = (pawnColor == WHITE) ? activePieceWhite : activePieceBlack;
+
+	for (int i = 0; i < 16; i++)
+	{
+		if (activePieces[i] == oldPawn)
+		{
+			activePieces[i] = promotedPiece;
+			break;
+		}
+	}
+
+	// 4. Update the Board
+	delete oldPawn;
+	squares[position.row][position.col] = promotedPiece;
+
 }
 
 Piece* Board::getPiece(Position at) const 
