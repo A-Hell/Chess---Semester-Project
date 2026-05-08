@@ -1,12 +1,12 @@
 /*
-* Last Edited: 5/7/26
+* Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-		Implemented: isUnderAttack, Function looks through the array of specified color and calls isValidMove on each active to see if it can reach the specified sqaure
-		Implemented: computeCheck, Function calls isUnderAttack on the coordinates of the King of a specific color to see if it is in danger or not
-		Modified:	Constructor to insure correct standard assigning of ActivePieces
-		Modified:	movePiece to cater to the activePiece array and ensure proper dynamic memory handeling
-					added Logic to compute checks after each move and to block and reverse a move that leads to check
+*		Implemented: lookForMoves function to loop through all pieces of a specific color and check if they have any valid moves left, used for checkmate and stalemate detection
+*		Implemented: ghost parameter to movePiece function to allow for checking valid moves without actually moving the piece
+*		Fixed: A critical Bug in computeCheck where it wasn't returning true when king was under attack
+*		Modified: isUnderAttack and lookForMoves to reduce line of codes by implementing the same logic in both functions in one loop and just changing the return value based on the function
+*		Modified: Capture Cleanup to clean up Active Piece array properly and to only delete the piece when the move is not reversed
 */
 
 #include "Board.h"
@@ -28,6 +28,8 @@ Board::Board()
 	squares[0][7] = new Rook(BLACK);
 	for (int i = 0; i < 8; i++)
 	squares[1][i] = new Pawn(BLACK);
+	blackKing = squares[0][4];
+
 
 	// Set Up White
 	squares[7][0] = new Rook(WHITE);
@@ -40,6 +42,7 @@ Board::Board()
 	squares[7][7] = new Rook(WHITE);
 	for (int i = 0; i < 8; i++)
 	squares[6][i] = new Pawn(WHITE);
+	whiteKing = squares[7][4];
 
 	// Assign Active Pieces
 	for (int i = 0; i < 8; i++)
@@ -77,7 +80,7 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 	squares[pos.row][pos.col] = piece;
 }
 
-bool Board::movePiece(Position from, Position to, bool inCheck)
+bool Board::movePiece(Position from, Position to, bool ghost )
 {
 	// Block Invalid Indexes
 	if (from.row < 0 || from.row > 7 || from.col < 0 || from.col > 7 ||
@@ -101,24 +104,7 @@ bool Board::movePiece(Position from, Position to, bool inCheck)
 		// store piece being capture for possible reversing of the move
 		Piece* temp = squares[to.row][to.col];
 
-		// Logic for capture
-		if(squares[to.row][to.col])
-		{
-			// Remove piece from active list
-			if (squares[to.row][to.col]->getColor() == WHITE)
-			{
-				for (int i = 0; i < 16; i++)
-					if (squares[to.row][to.col] == activePieceWhite[i])
-						activePieceWhite[i] = nullptr;
-			}
-			else if (squares[to.row][to.col]->getColor() == BLACK)
-			{
-				for (int i = 0; i < 16; i++)
-					if (squares[to.row][to.col] == activePieceBlack[i])
-						activePieceBlack[i] = nullptr;
-			}
-		}
-		// logic for moving
+		// logic for moving / capture
 		squares[to.row][to.col] = toMove;
 		squares[from.row][from.col] = nullptr;
 
@@ -129,9 +115,23 @@ bool Board::movePiece(Position from, Position to, bool inCheck)
 			squares[to.row][to.col] = temp;
 			return false;
 		}
+		else if (ghost)
+		{
+			// ghost case to check for valid moves without actually moving
+			squares[from.row][from.col] = toMove;
+			squares[to.row][to.col] = temp;
+		}
 		else
 		{
 			// Deallocate Captured piece in case of No reverse
+			if (temp)
+			{
+				// Remove piece from active list
+				Piece**  activePieces = (temp->getColor() == BLACK) ? activePieceBlack : activePieceWhite;
+				for (int i = 0; i < 16; i++)
+					if (temp == activePieces[i])
+						activePieces[i] = nullptr;
+			}
 			delete temp;
 		}
 		
@@ -142,25 +142,17 @@ bool Board::movePiece(Position from, Position to, bool inCheck)
 
 bool Board::isUnderAttack(Position pos, Color byColor) const
 {
-	Position piecePos;
-	if (byColor == BLACK)
-		for (int i = 0; i < 16; i++)
-		{
-			if (!activePieceBlack[i])
-				continue;
-			piecePos = GetPiecePosition(activePieceBlack[i]);
-			if (activePieceBlack[i]->isValidMove(piecePos, pos, *this))
-				return true;
-		}
-	else if (byColor == WHITE)
-		for (int i = 0; i < 16; i++)
-		{
-			if (!activePieceWhite[i])
-				continue;
-			piecePos = GetPiecePosition(activePieceWhite[i]);
-			if (activePieceWhite[i]->isValidMove(piecePos, pos, *this))
-				return true;
-		}
+	Piece* const* activePieces = (byColor == BLACK) ? activePieceBlack : activePieceWhite;
+
+	for (int i = 0; i < 16; i++)
+	{
+		if (!activePieces[i])
+			continue;
+
+		Position piecePos = GetPiecePosition(activePieces[i]);
+		if (activePieces[i]->isValidMove(piecePos, pos, *this))
+			return true;
+	}
 
 	return false;
 }
@@ -169,18 +161,40 @@ bool Board::computeCheck(Color on) const
 {
 	if (on == WHITE)
 	{
-		Piece* king = activePieceWhite[4]; // get King
-		if (!king)
+		if (!whiteKing)
 			return false;
-		isUnderAttack(GetPiecePosition(king), BLACK);
+		if (isUnderAttack(GetPiecePosition(whiteKing), BLACK))
+			return true;
 	}
 	else if (on == BLACK)
 	{
-		Piece* king = activePieceBlack[4]; // get King
-		if (!king)
+		if(!blackKing)
 			return false;
-		isUnderAttack(GetPiecePosition(king), WHITE);
+		if (isUnderAttack(GetPiecePosition(blackKing), WHITE))
+			return true;
 	}
+	return false;
+}
+
+bool Board::lookForMoves(Color on)
+{
+	bool moveAvailiable = true;
+	Piece* const* activePieces = (on == BLACK) ? activePieceBlack : activePieceWhite;
+
+	for (int a = 0; a < 16; a++)
+	{
+		Piece* current = activePieces[a];
+		if (current)
+		{
+			Position from = GetPiecePosition(current);
+			for (int i = 0; i < 8; i++)
+				for (int j = 0; j < 8; j++)
+					if (movePiece(from, Position{ i,j }, true)) // use ghost move
+						return true; // if valid move found no checkamte or stalemate
+		}
+
+	}
+	return false;
 }
 
 Piece* Board::getPiece(Position at) const 

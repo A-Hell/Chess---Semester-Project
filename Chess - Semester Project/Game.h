@@ -23,6 +23,9 @@ class Game
 	Position from;
 	Position to;
 	Color currentPlayer; 
+	bool inCheck;
+	bool Checkmate;
+	bool Stalemate;
 public:
 	Game();
 
@@ -32,6 +35,7 @@ public:
 	void changeTurn(); // Function to swap Current Player
 	bool validatePiece(Position at); // Function to validate that piece is being moved by the correct player
 	bool processTurn(); // Function to call the necessary Game checks to make sure the Turn was successful and piece was moved
+	bool getCheckStatus(); // Returns wether the current player is in check or not
 	void EndGame(); // Function to end the game, clean up resources, and display results.
 
 	~Game(); // Destructor to clean up any dynamically allocated memory on game end.

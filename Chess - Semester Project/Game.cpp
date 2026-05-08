@@ -1,14 +1,10 @@
 
 /*
-* Last Edited: 5/6/26
+* Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-*		Implemented the following functions of the Game class:
-* 			validatePiece(Position at) : Checks if the piece at the given position belongs to the current player, returns true if valid, false otherwise.
-*			processTurn() : Validates the move and moves the piece if valid, returns true if successful, false otherwise.
-* 			changeTurn() : Swaps the current player after a successful move.
-* 
-*		Modified generateFrame() to call processTurn and changeTurn to simplify the game loop and make moved piece validate with the player
+*		Modified: ProcessTurn to check fo check on opposite king after each move and to check for checkmate and stalemate conditions
+*		Modified: generateFrame to break the game loop when checkmate or stalemate is detected and to display the appropriate end game message
 */
 
 #include "Game.h"
@@ -20,6 +16,9 @@ Game::Game()
 	from = { -1,-1 };
 	to = { -1,-1 };
 	currentPlayer = WHITE;
+	inCheck = false;
+	bool Checkmate = false;
+	bool Stalemate = false;
 }
 
 void Game::StartGame()
@@ -28,6 +27,9 @@ void Game::StartGame()
 	from = { -1,-1 };
 	to = { -1,-1 };
 	currentPlayer = WHITE;
+	inCheck = false;
+	bool Checkmate = false;
+	bool Stalemate = false;
 	generateFrame();
 }
 
@@ -51,7 +53,6 @@ void Game::generateFrame()
 		while (!processTurn())
 		{
 			system("cls");
-
 			interface.renderBoard(*board);
 			interface.renderCurrentPlayer(currentPlayer);
 			cout << RED << "Invalid Move! Please try again." << RESET << endl;
@@ -59,8 +60,22 @@ void Game::generateFrame()
 			interface.getMoveInput(from, to);
 		}
 
-		system("pause");
-		changeTurn(); // change turn after a successful loop
+		// Break the Game loop when checkmate or stalemate
+		if (Checkmate || Stalemate)
+		{
+			system("cls");
+			interface.renderBoard(*board);
+			if (Checkmate)
+				cout << endl << RED + "Checkmate Game over!  " + RESET << ((currentPlayer == WHITE) ? "BLACK" : "WHITE") << RED + " Won " + RESET << endl;
+			if (Stalemate)
+				cout << endl << YELLOW + "Stalemate Game over!  " + RESET << ((currentPlayer == WHITE) ? "BLACK" : "WHITE") << YELLOW + " Won " + RESET << endl;
+			break;
+		}
+		else
+		{
+			system("pause");
+			changeTurn(); // change turn after a successful loop
+		}
 	}
 
 }
@@ -73,8 +88,22 @@ bool Game::processTurn()
 		return false;
 	}
 
+	// Block in valid move
 	if (!board->movePiece(from, to))
 		return false;
+
+	// after Player makes a move check if other player is in check or not
+	inCheck = board->computeCheck((currentPlayer == WHITE) ? BLACK : WHITE );
+
+	// if in check and no moves availiable other player is in checkmate other if not in check but no availiable moves other player in stalemate
+	if (inCheck)
+	{
+		if (!board->lookForMoves((currentPlayer == WHITE) ? BLACK : WHITE))
+			Checkmate = true;
+	}
+	else
+		if (!board->lookForMoves((currentPlayer == WHITE) ? BLACK : WHITE))
+			Stalemate = true;
 
 	return true;
 }
@@ -91,8 +120,12 @@ bool Game::validatePiece(Position at)
 		return false;
 }
 
+bool Game::getCheckStatus() { return inCheck; }
+
 void Game::EndGame()
 {
+	cout << "\nGame Ended\n";
+	system("pause");
 	delete this->board;
 	this->board = nullptr;
 }
