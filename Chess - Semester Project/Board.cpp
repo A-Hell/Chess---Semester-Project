@@ -2,10 +2,7 @@
 * Last Edited: 5/8/26
 * Author: Amna
 * Description:
-*		Modified: movePiece to handle "Double Move" logic for Castling (automatically repositioning the Rook).
-*		Modified: movePiece to detect Pawn Promotion and trigger the replacement of Pawn objects.
-*		Implemented: promotePawn helper function to safely deallocate pawns and update active piece pointers to new Queens.
-*		Implemented: setMovedStatus and getMovedStatus calls to ensure King and Rook cannot castle after their first move.
+*		Added: fifty move rule logic
 */
 
 #include "Board.h"
@@ -59,6 +56,7 @@ Board::Board()
 		for (int j = 0; j < 8; j++)
 			squares[i][j] = nullptr;
 
+	lastCapture = 0;
 }
 
 Position Board::GetPiecePosition(Piece* piece) const
@@ -192,8 +190,10 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			for (int i = 0; i < 16; i++)
 				if (temp == activePieces[i])
 					activePieces[i] = nullptr;
+			lastCapture = 0;
 		}
 		delete temp;
+		lastCapture++;
 
 		// Safely checks whether the moved piece is a King.
         // dynamic_cast returns nullptr if the piece is not actually a King.
@@ -226,7 +226,7 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			promotePawn(to, promotionChoice);
 		}
 	}
-
+	
 	return true;
 }
 
@@ -346,10 +346,9 @@ void Board::promotePawn(Position position, PieceType promotionType)
 
 }
 
-Piece* Board::getPiece(Position at) const 
-{ 
-	return squares[at.row][at.col]; 
-}
+bool Board::fiftyMoveRule() const {return lastCapture >= 50;}
+
+Piece* Board::getPiece(Position at) const {	return squares[at.row][at.col]; }
 
 Board::~Board()
 {

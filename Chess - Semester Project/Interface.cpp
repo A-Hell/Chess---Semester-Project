@@ -2,7 +2,7 @@
 * Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-		Implemented: getPromotionInput to get user input for pawn promotion, ensuring only valid piece types (Q/R/B/N) are accepted and returned as PieceType enums.
+		Implemented: renderMoveHistory to print the last 5 moves
 */
 
 #include "Interface.h"
@@ -90,13 +90,40 @@ bool Interface::isValidInput(int row, int col)
 
 void Interface::renderCurrentPlayer(Color currentPlayer)
 {
-    cout << "\n" << BOLD << GREEN << "[CURRENT PLAYER: " << (currentPlayer == WHITE ? (WHITE_ + "WHITE") : (GRAY + "BLACK")) << GREEN + "]" << RESET << endl;
+    cout << "\n" << BOLD << GREEN << "[CURRENT PLAYER: " << (currentPlayer == WHITE ? (WHITE_ + "WHITE") : (GRAY + "BLACK")) << GREEN + "]" << RESET;
 }
 
 void Interface::renderCheckAlert(bool inCheck)
 {
     if (inCheck)
         cout << "\n" << BOLD << RED << "[CHECK ALERT: Your King is in Danger!]" << RESET;
+}
+
+void Interface::renderMoveHistory(const Position moveHistory[100][2])
+{
+    bool first = true;
+	// display the last 5 moves in the move history
+    cout << "\n" << BOLD << GREEN << "[MOVE HISTORY]" << RESET << endl;
+    for (int i = 4; i >= 0; i--)
+    {
+        // skip empty history slots
+        if (moveHistory[i][0].row == 0 && moveHistory[i][0].col == 0 && moveHistory[i][1].row == 0 && moveHistory[i][1].col == 0)
+            continue;
+
+        if (first)
+        {
+            cout << DYELLOW + BOLD + "|" + RESET;
+            first = false;
+        }
+        char fromCol = 'a' + moveHistory[i][0].col;
+        char fromRow = '1' + (7 - moveHistory[i][0].row);
+        char toCol = 'a' + moveHistory[i][1].col;
+        char toRow = '1' + (7 - moveHistory[i][1].row);
+        cout << BOLD + YELLOW << fromCol << fromRow << "->" << toCol << toRow << RESET;
+        cout << DYELLOW + BOLD + "|" + RESET;
+        
+	}
+
 }
 
 PieceType Interface::getPromotionInput()

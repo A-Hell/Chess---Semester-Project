@@ -5,8 +5,8 @@
 * Last Edited: 5/8/26
 * Author: Amna
 * Description:
-*		Added: promotePawn function to handle object replacement and active piece array synchronization.
-*       Added: hasMoved tracking logic to support Castling validation.		
+*		Added: LastCapture to keep track of when the last piece was caputre
+*		Added: fifity move rule logic which uses lastCapture to check for fiftyMoveRule
 */
 
 
@@ -21,6 +21,7 @@ class Board
 	Piece* activePieceBlack[16]; // Array of pointers to active pieces for Black.
 	Piece* whiteKing;
 	Piece* blackKing;
+	int lastCapture; // numbers of moves since last capture - used for 50 move rule
 public:
 	Board(); // Initializes the chessboard and sets up pieces.
 
@@ -32,6 +33,7 @@ public:
 	bool isUnderAttack(Position pos, Color byColor) const; // Checks if a given position is under attack by any pieces of the specified color.
 	bool computeCheck(Color on) const; // Checks if the king of the specified color is in check.
 	bool lookForMoves(Color on); // Check if the player has any valid moves left
+	bool fiftyMoveRule() const; // Check if its been 50 moves without capture or not
 	Piece* getPiece(Position at) const;// Returns the piece at a specific coordinate (needed Interface)
 	
 	~Board(); // Cleans up any dynamically allocated memory on game.

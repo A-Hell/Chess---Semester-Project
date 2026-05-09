@@ -5,8 +5,8 @@
 * Last Edited: 5/7/26
 * Author: Rayyan
 * Description:
-	- Added getPromotionInput to capture user input for pawn promotion, and return selected PieceType as an enum.
-*/
+	- Added: renderMoveHistory to render last 5 moves
+ */
 
 #pragma once
 #include "Common.h"
@@ -26,6 +26,8 @@ public:
     void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
 
     void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
+
+	void renderMoveHistory(const Position moveHistory[100][2]); // Displays the history of moves made in the game
 
 	static PieceType getPromotionInput(); // Captures user input for pawn promotion
 };
