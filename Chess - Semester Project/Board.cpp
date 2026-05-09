@@ -1,8 +1,10 @@
 /*
-* Last Edited: 5/8/26
+* Last Edited: 5/9/26
 * Author: Amna
 * Description:
-*		Added: fifty move rule logic
+* - Added Last Move Tracking (positions and piece pointer) to support En Passant.
+* - Implemented const-qualified getters for safe board state inspection.
+* - Enhanced movePiece() to handle En Passant capture execution and side-pawn memory cleanup.
 */
 
 #include "Board.h"
@@ -283,6 +285,18 @@ bool Board::isUnderAttack(Position pos, Color byColor) const
 			continue;
 
 		Position piecePos = GetPiecePosition(activePieces[i]);
+
+		if (activePieces[i]->getType() == KING)
+		{
+			int rowDis = abs(piecePos.row - pos.row);
+			int colDis = abs(piecePos.col - pos.col);
+
+			if ((rowDis !=0 || colDis != 0) && (rowDis<=1&&colDis<=1))
+				return true;
+
+			continue;
+		}
+
 		if (activePieces[i]->isValidMove(piecePos, pos, *this))
 			return true;
 	}

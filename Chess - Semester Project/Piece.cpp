@@ -1,14 +1,10 @@
 /*
-* Last Edited:  5/8/2026
+* Last Edited:  5/9/2026
 * Author:       Amna Akbar
 * Description:
-* - Implemented: hasMoved initialization in King and Rook constructors.
-* - Implemented: Castling Logic in King::isValidMove.
-* 1. Detects 2-square horizontal movement.
-* 2. Validates that King and Rook have not moved previously.
-* 3. Uses board.isUnderAttack to ensure the King does not pass through or land in check.
-* 4. Verifies the path between King and Rook is clear of any pieces.
-* - Refined: Pawn movement to ensure diagonal movement only occurs during enemy captures.
+* - Expanded Pawn::isValidMove to include En Passant validation.
+* - Utilized Board getters to verify double-step jump timing and neighbor piece types.
+* - Maintained const-correctness for compatibility with Board state inspection.
 */
 
 #include "Piece.h"

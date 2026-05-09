@@ -2,11 +2,10 @@
 // It is responsible for managing the chessboard, including the positions of pieces, validating moves.
 
 /*
-* Last Edited: 5/8/26
+* Last Edited: 5/9/26
 * Author: Amna
 * Description:
-*		Added: LastCapture to keep track of when the last piece was caputre
-*		Added: fifity move rule logic which uses lastCapture to check for fiftyMoveRule
+*		Added: En Passant Logics
 */
 
 
