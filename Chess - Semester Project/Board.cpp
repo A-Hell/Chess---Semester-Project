@@ -179,26 +179,29 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 	{
 		// --- STEP 8 & 9: EN PASSANT CAPTURE EXECUTION---
 			// Detect if a PAWN moved diagonally into an EMPTY square
-		if (toMove->getType() == PAWN && from.col && temp != nullptr)
+		if (toMove->getType() == PAWN && from.col != to.col and temp == nullptr)
 		{
 			int victimRow = from.row;
-			int victimCol = from.col;
+			int victimCol = to.col;
 
 			Piece* victimPawn = squares[victimRow][victimCol];
 
-			if (victimRow)
+			if (victimPawn)
 			{
 				// 1. Remove it from the active pieces list
 				Piece** activePieces = (victimPawn->getColor() == BLACK) ? activePieceBlack : activePieceWhite;
-
-				for (int i = 0; i < 16; i++)
+				if (victimPawn)
 				{
-					if (activePieces[i] == victimPawn)
+					for (int i = 0; i < 16; i++)
 					{
-						activePieces[i] = nullptr;
-						break;
+						if (activePieces[i] == victimPawn)
+						{
+							activePieces[i] = nullptr;
+							break;
+						}
 					}
 				}
+			
 
 				// 2. Delete the victim pawn and clear the square
 				delete victimPawn;

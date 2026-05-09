@@ -6,6 +6,7 @@
 */
 
 #include "Game.h"
+#include "GUI.h"
 
 Game::Game()
 {
@@ -21,6 +22,7 @@ Game::Game()
 
 void Game::StartGame()
 {
+	GUI::init();
 	this->board = new Board;
 	from = { -1,-1 };
 	to = { -1,-1 };
@@ -43,13 +45,13 @@ void Game::gameLoop()
 		generateFrame();
 
 		// Get input once
-		Interface::getMoveInput(from, to);
+		GUI::getMoveInput(from, to);
 
 		// Keep asking for input until a valid move is made
 		while (!processTurn())
 		{
 			generateFrame(true);
-			Interface::getMoveInput(from, to);
+			GUI::getMoveInput(from, to);
 		}
 
 		// Break the Game loop when checkmate or stalemate or 50 move rule is reached 
@@ -79,7 +81,6 @@ void Game::gameLoop()
 		}
 		else
 		{
-			system("pause");
 			changeTurn(); // change turn after a successful loop
 		}
 	}
@@ -89,13 +90,13 @@ void Game::gameLoop()
 void Game::generateFrame(bool invalidMove)
 {
 	system("cls");
-	Interface::renderHeader();
-	Interface::renderBoard(*board, inCheck);
+	GUI::renderHeader();
+	GUI::renderBoard(*board, inCheck);
 	if (invalidMove)
 		cout << RED << "Invalid Move! Please try again." << RESET ;
-	Interface::renderCheckAlert(inCheck);
-	Interface::renderCurrentPlayer(currentPlayer);
-	Interface::renderMoveHistory(board->getMoveHistory());
+	GUI::renderCheckAlert(inCheck);
+	GUI::renderCurrentPlayer(currentPlayer);
+	GUI::renderMoveHistory(board->getMoveHistory());
 }
 
 bool Game::processTurn()
@@ -147,6 +148,7 @@ void Game::EndGame()
 	system("pause");
 	delete this->board;
 	this->board = nullptr;
+	GUI::close();
 }
 
 Game::~Game()
