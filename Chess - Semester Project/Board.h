@@ -5,9 +5,7 @@
 * Last Edited: 5/9/26
 * Author: Armaghan
 * Description:
-*		Added: BoardHistory array to track board states in FEN notation for three fold repetition rule.
-*		Added: toFEN() function to convert the current board state to FEN notation.
-*		Added: threefoldRepetition() function to check if the current board state has occurred 3 times in the history.
+*		Removed: Default Parameters from movePiece to force correction function calls
 */
 
 
@@ -36,7 +34,7 @@ public:
 	void setPiecePosition(Piece* piece, Position pos); // Sets the position of a given piece on the board.
 	void setupCastlingTest();
 	void promotePawn(Position position, PieceType promotionType);
-	bool movePiece(Position from, Position to, bool ghost = false); // Moves a piece from one position to another
+	bool movePiece(Position from, Position to, bool activeGUI, bool ghost ); // Moves a piece from one position to another
 	bool isUnderAttack(Position pos, Color byColor) const; // Checks if a given position is under attack by any pieces of the specified color.
 	bool computeCheck(Color on) const; // Checks if the king of the specified color is in check.
 	bool lookForMoves(Color on); // Check if the player has any valid moves left

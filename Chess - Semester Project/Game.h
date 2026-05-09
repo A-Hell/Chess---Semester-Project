@@ -16,6 +16,7 @@
 class Game
 {
 	Board* board;
+	bool GUIEnabled; // Flag to check if to use GUI or Console Interface
 
 	// Game State Variables
 	Color currentPlayer;

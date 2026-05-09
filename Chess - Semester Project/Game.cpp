@@ -18,11 +18,11 @@ Game::Game()
 	inCheck = false;
 	Checkmate = false;
 	Stalemate = false;
+	GUIEnabled = false; // Default to console interface, can be changed to true to use GUI
 }
 
 void Game::StartGame()
 {
-	GUI::init();
 	this->board = new Board;
 	from = { -1,-1 };
 	to = { -1,-1 };
@@ -30,6 +30,19 @@ void Game::StartGame()
 	inCheck = false;
 	Checkmate = false;
 	Stalemate = false;
+	Interface::renderHeader();
+	// menu to choose between GUI and Console Interface
+	int choice;
+	cout << BOLD + GREEN + "\n     ---- Choose Interface ----" << endl;
+	cout << "      1. Console Interface" << endl;
+	cout << "         2. GUI Interface" << endl;
+	cout << "           Choice: " + RESET + DYELLOW;
+	cin >> choice;
+	cout << RESET;
+	if (choice == 2)
+		GUIEnabled = true;
+	GUI::init(GUIEnabled);
+
 	gameLoop(); // Start the main game loop
 }
 
@@ -45,13 +58,21 @@ void Game::gameLoop()
 		generateFrame();
 
 		// Get input once
-		GUI::getMoveInput(from, to);
+		if (GUIEnabled)
+			GUI::getMoveInput(from, to);
+		else
+			Interface::getMoveInput(from, to);
 
 		// Keep asking for input until a valid move is made
 		while (!processTurn())
 		{
 			generateFrame(true);
-			GUI::getMoveInput(from, to);
+			GUI::playErrorSound();
+			if (GUIEnabled)
+				GUI::getMoveInput(from, to);
+			else
+				Interface::getMoveInput(from, to);
+
 		}
 
 		// Break the Game loop when checkmate or stalemate or 50 move rule is reached 
@@ -90,13 +111,24 @@ void Game::gameLoop()
 void Game::generateFrame(bool invalidMove)
 {
 	system("cls");
-	GUI::renderHeader();
-	GUI::renderBoard(*board, inCheck);
-	if (invalidMove)
-		cout << RED << "Invalid Move! Please try again." << RESET ;
-	GUI::renderCheckAlert(inCheck);
-	GUI::renderCurrentPlayer(currentPlayer);
-	GUI::renderMoveHistory(board->getMoveHistory());
+	if (GUIEnabled)
+	{
+		GUI::renderHeader();
+		GUI::renderBoard(*board, inCheck);
+		GUI::renderCheckAlert(inCheck);
+		GUI::renderCurrentPlayer(currentPlayer);
+		GUI::renderMoveHistory(board->getMoveHistory());
+	}
+	else
+	{
+		Interface::renderHeader();
+		Interface::renderBoard(*board, inCheck);
+		if (invalidMove)
+			cout << RED << "Invalid Move! Please try again." << RESET;
+		Interface::renderCheckAlert(inCheck);
+		Interface::renderCurrentPlayer(currentPlayer);
+		Interface::renderMoveHistory(board->getMoveHistory());
+	}
 }
 
 bool Game::processTurn()
@@ -108,11 +140,13 @@ bool Game::processTurn()
 	}
 
 	// Block in valid move
-	if (!board->movePiece(from, to))
+	if (!board->movePiece(from, to, GUIEnabled, false))
 		return false;
 
 	// after Player makes a move check if other player is in check or not
 	inCheck = board->computeCheck((currentPlayer == WHITE) ? BLACK : WHITE);
+	if (inCheck)
+		GUI::playCheckSound();
 
 	// if in check and no moves availiable other player is in checkmate other if not in check but no availiable moves other player in stalemate
 	if (inCheck)

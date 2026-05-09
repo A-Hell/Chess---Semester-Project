@@ -8,6 +8,7 @@
 
 #include "Board.h"
 #include "Interface.h"
+#include "GUI.h"
 
 // Default Constructor
 Board::Board()
@@ -132,7 +133,7 @@ void Board::setupCastlingTest()
 	activePieceBlack[3] = squares[1][3];
 }
 
-bool Board::movePiece(Position from, Position to, bool ghost )
+bool Board::movePiece(Position from, Position to, bool activeGUI, bool ghost )
 {
 	// Block Invalid Indexes
 	if (from.row < 0 || from.row > 7 || from.col < 0 || from.col > 7 ||
@@ -225,6 +226,7 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 
 			// Mark the Rook as moved
 			static_cast<Rook*>(castlingRook)->setMovedStatus(true);
+			GUI::playCastleSound();
 		}
 
 		// Deallocate Captured piece in case of No reverse
@@ -236,6 +238,7 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 				if (temp == activePieces[i])
 					activePieces[i] = nullptr;
 			lastCapture = 0;
+			GUI::playCaptureSound();
 		}
 		delete temp;
 
@@ -266,6 +269,8 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			rook->setMovedStatus(true);
 		}
 
+		if (lastCapture!=0)
+			GUI::playMoveSound();
 		
 	}
 	// --- PAWN PROMOTION DETECTION ---
@@ -278,8 +283,13 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 
 		if (whitePromotion || blackPromotion)
 		{
-			PieceType promotionChoice = Interface::getPromotionInput();
+			PieceType promotionChoice;
+			if (activeGUI)
+				promotionChoice = GUI::getPromotionInput();
+			else
+				promotionChoice = Interface::getPromotionInput();
 			promotePawn(to, promotionChoice);
+			GUI::playPromoteSound();
 		}
 	}
 
@@ -347,7 +357,7 @@ bool Board::lookForMoves(Color on)
 			Position from = GetPiecePosition(current);
 			for (int i = 0; i < 8; i++)
 				for (int j = 0; j < 8; j++)
-					if (movePiece(from, Position{ i,j }, true)) // use ghost move
+					if (movePiece(from, Position{ i,j }, false, true)) // use ghost move
 						return true; // if valid move found no checkamte or stalemate
 		}
 

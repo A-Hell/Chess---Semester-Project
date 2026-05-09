@@ -6,12 +6,8 @@
 * Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-*           Declared: All functions that were in Interface class
-*           Added: Init() to load all textures and Dyncamically allocate the Window
-*           Added: close() to clean up the window and any resources
-*           Added: renderBoard() to draw the chessboard and pieces on the screen
-*           Added: getMoveInput() to capture user input for moves using mouse clicks
-*           Added: isValidInput() to ensure the user clicks within the range of the chessboard
+*           Added: Sound Effects for moves, captures, checks, promotions, castling, and errors
+*           Added: Visual Effect for chosen piece (highlighting the square of the piece being moved)  
 */
 
 #pragma once
@@ -27,8 +23,8 @@ class GUI
 {
 private:
 
-	static unsigned int windowWidth;
-	static unsigned int windowHeight;
+    static unsigned int windowWidth;
+    static unsigned int windowHeight;
     static unsigned int boardSize;
     static float tileSize;
 
@@ -40,17 +36,49 @@ private:
     static sf::Texture boardTexture;
     static bool texturesLoaded;
 
-public:
-    static void init();
+    static sf::SoundBuffer moveSoundBuffer;
+    static sf::SoundBuffer captureSoundBuffer;
+    static sf::SoundBuffer notifySoundBuffer;
+    static sf::SoundBuffer checkSoundBuffer;
+    static sf::SoundBuffer promoteSoundBuffer;
+    static sf::SoundBuffer castleSoundBuffer;
+    static sf::SoundBuffer errorSoundBuffer;
 
-	// Rendering functions
+    static sf::Sound* moveSound;
+    static sf::Sound* captureSound;
+    static sf::Sound* notifySound;
+    static sf::Sound* checkSound;
+    static sf::Sound* promoteSound;
+    static sf::Sound* castleSound;
+    static sf::Sound* errorSound;
+
+    static bool soundsLoaded;
+
+    // Visual Effect for chosen piece
+    static const Board* cachedBoard;
+    static Position highlightSquare;
+
+public:
+    static void init(bool activeGUI = false);
+
+    // Rendering functions
     static void renderHeader();
     static void renderBoard(const Board& board, bool isCheck = false);
     static void renderCurrentPlayer(Color currentPlayer);
     static void renderCheckAlert(bool inCheck);
     static void renderMoveHistory(const Position moveHistory[100][2]);
 
-	// Input functions
+    // Sound functions -- These Sounds Work Independatly of GUI or Interface
+    // since they use SFML's audio module, they are placed here
+    static void playMoveSound();
+    static void playCaptureSound();
+    static void playNotifySound();
+    static void playCheckSound();
+    static void playPromoteSound();
+    static void playCastleSound();
+    static void playErrorSound();
+
+    // Input functions
     static void getMoveInput(Position& from, Position& to);
     static bool isValidInput(int row, int col);
     static PieceType getPromotionInput();
