@@ -3,9 +3,11 @@
 
 /*
 * Last Edited: 5/9/26
-* Author: Amna
+* Author: Armaghan
 * Description:
-*		Added: En Passant Logics
+*		Added: BoardHistory array to track board states in FEN notation for three fold repetition rule.
+*		Added: toFEN() function to convert the current board state to FEN notation.
+*		Added: threefoldRepetition() function to check if the current board state has occurred 3 times in the history.
 */
 
 
@@ -20,10 +22,13 @@ class Board
 	Piece* activePieceBlack[16]; // Array of pointers to active pieces for Black.
 	Piece* whiteKing;
 	Piece* blackKing;
+	Position moveHistory[100][2]; // stores the history of moves in a 2D array
+	string boardHistory[100]; // stores the board state after each move in FEN notation for Three fold repetition rule
 	Position lastMoveFrom;   // Add Last Move Tracking
 	Position lastMoveTo;
 	Piece* lastMovedPiece;
 	int lastCapture; // numbers of moves since last capture - used for 50 move rule
+	int lastPawnMove; // number of moves since last pawn move - used for 50 move rule
 public:
 	Board(); // Initializes the chessboard and sets up pieces.
 
@@ -35,8 +40,15 @@ public:
 	bool isUnderAttack(Position pos, Color byColor) const; // Checks if a given position is under attack by any pieces of the specified color.
 	bool computeCheck(Color on) const; // Checks if the king of the specified color is in check.
 	bool lookForMoves(Color on); // Check if the player has any valid moves left
-	bool fiftyMoveRule() const; // Check if its been 50 moves without capture or not
 	Piece* getPiece(Position at) const;// Returns the piece at a specific coordinate (needed Interface)
+	void storeMoveHistory(Position from, Position to); // Function to store the history of moves 
+	void storeBoardHistory(); // Function to store the history of board states in FEN notation for three fold repetition rule
+	string toFEN() const; // Converts the current board state to FEN notation
+	bool fiftyMoveRule() const; // Check if its been 50 moves without capture or not
+	bool threeFoldRepetition() const; // Check if the current board state has occurred 3 times in the history
+	Position (*getMoveHistory())[2]; // Returns a pointer to the 2D move history array
+	string* getBoardHistory(); // Returns the board state in FEN notation 
+
 	//getters for last move tracking
 	Position getLastMoveFrom() const;
 	Position getLastMoveTo() const;

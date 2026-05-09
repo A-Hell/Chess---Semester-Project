@@ -5,8 +5,7 @@
 * Last Edited: 5/8/26
 * Author: Rayyan
 * Description:
-*		Added: moveHistory[][] to store previous moves
-*		Added: StoreMoveHistory to store the moves in the correct order
+*		Moved : MoveHistory and related functionality to Board class
 */
 
 #pragma once
@@ -17,14 +16,15 @@
 class Game
 {
 	Board* board;
-	Interface interface;
+
+	// Game State Variables
+	Color currentPlayer;
 	Position from;
 	Position to;
-	Color currentPlayer;
 	bool inCheck;
 	bool Checkmate;
 	bool Stalemate;
-	Position moveHistory[100][2];
+
 public:
 	Game();
 
@@ -36,7 +36,6 @@ public:
 	bool validatePiece(Position at); // Function to validate that piece is being moved by the correct player
 	bool processTurn(); // Function to call the necessary Game checks to make sure the Turn was successful and piece was moved
 	bool getCheckStatus() const; // Returns wether the current player is in check or not
-	void storeMoveHistory(Position from, Position to); // Function to store the history of moves 
 	void EndGame(); // Function to end the game, clean up resources, and display results.
 
 	~Game(); // Destructor to clean up any dynamically allocated memory on game end.

@@ -15,19 +15,18 @@
 static class Interface
 {
 public:
-    void renderHeader();
+    static void renderHeader();
 
-    void renderBoard(const Board& board, bool isCheck = false); // Prints the board to the console
+    static void renderBoard(const Board& board, bool isCheck = false); // Prints the board to the console
 
-    void getMoveInput(Position& from, Position& to); // captures user coordinates
+    static void getMoveInput(Position& from, Position& to); // captures user coordinates
+    static bool isValidInput(int row, int col);  // Ensures the user doesn't enter coordinates outside 0-7
 
-    bool isValidInput(int row, int col);  // Ensures the user doesn't enter coordinates outside 0-7
+    static void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
 
-    void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
+    static void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
 
-    void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
-
-	void renderMoveHistory(const Position moveHistory[100][2]); // Displays the history of moves made in the game
+	static void renderMoveHistory(const Position moveHistory[100][2]); // Displays the history of moves made in the game
 
 	static PieceType getPromotionInput(); // Captures user input for pawn promotion
 };

@@ -1,10 +1,8 @@
-
 /*
 * Last Edited: 5/8/26
 * Author: Rayyan
 * Description:
-*		Implemented: fifty move rule, forces a draw if no captures happen in 50 moves
-*		Implemented: Move history, keeps track of the last 100 moves in a 2d array
+*		
 */
 
 #include "Game.h"
@@ -45,26 +43,38 @@ void Game::gameLoop()
 		generateFrame();
 
 		// Get input once
-		interface.getMoveInput(from, to);
+		Interface::getMoveInput(from, to);
 
 		// Keep asking for input until a valid move is made
 		while (!processTurn())
 		{
 			generateFrame(true);
-			interface.getMoveInput(from, to);
+			Interface::getMoveInput(from, to);
 		}
 
 		// Break the Game loop when checkmate or stalemate or 50 move rule is reached 
-		if (Checkmate || Stalemate || board->fiftyMoveRule())
+		if (Checkmate)
 		{
 			generateFrame();
-
-			if (Checkmate)
-				cout << endl << RED + "Checkmate Game over! " + RESET << ((currentPlayer == WHITE) ? (GRAY + "Black" + RESET) : (WHITE_ + "White" + RESET)) << RED + " Won " + RESET << endl;
-			if (Stalemate)
-				cout << endl << YELLOW + "Stalemate Game over! Its a Draw." + RESET << endl;
-			if (board->fiftyMoveRule())
-				cout << endl << YELLOW + "50 Move Rule Game over! Its a Draw." + RESET << endl;
+			cout << endl << RED + "Checkmate Game over! " + RESET << ((currentPlayer == WHITE) ? (GRAY + "Black" + RESET) : (WHITE_ + "White" + RESET)) << RED + " Won " + RESET << endl;
+			break;
+		}
+		else if (Stalemate)
+		{
+			generateFrame();
+			cout << endl << YELLOW + "Stalemate Game over! Its a Draw." + RESET << endl;
+			break;
+		}
+		else if (board->fiftyMoveRule())
+		{
+			generateFrame();
+			cout << endl << YELLOW + "50 Move Rule Game over! Its a Draw." + RESET << endl;
+			break;
+		}
+		else if (board->threeFoldRepetition())
+		{
+			generateFrame();
+			cout << endl << YELLOW + "Three Fold Repetition Game over! Its a Draw." + RESET << endl;
 			break;
 		}
 		else
@@ -79,13 +89,13 @@ void Game::gameLoop()
 void Game::generateFrame(bool invalidMove)
 {
 	system("cls");
-	interface.renderHeader();
-	interface.renderBoard(*board, inCheck);
+	Interface::renderHeader();
+	Interface::renderBoard(*board, inCheck);
 	if (invalidMove)
 		cout << RED << "Invalid Move! Please try again." << RESET ;
-	interface.renderCheckAlert(inCheck);
-	interface.renderCurrentPlayer(currentPlayer);
-	interface.renderMoveHistory(moveHistory);
+	Interface::renderCheckAlert(inCheck);
+	Interface::renderCurrentPlayer(currentPlayer);
+	Interface::renderMoveHistory(board->getMoveHistory());
 }
 
 bool Game::processTurn()
@@ -113,8 +123,6 @@ bool Game::processTurn()
 		if (!board->lookForMoves((currentPlayer == WHITE) ? BLACK : WHITE))
 			Stalemate = true;
 
-	storeMoveHistory(from, to); // store the move in the history after a successful move
-
 	return true;
 }
 
@@ -132,18 +140,7 @@ bool Game::validatePiece(Position at)
 
 bool Game::getCheckStatus() const { return inCheck; }
 
-void Game::storeMoveHistory(Position from, Position to)
-{
-	// Shift all previous moves back by one position
-	for (int i = 99; i > 0; i--)
-	{
-		moveHistory[i][0] = moveHistory[i - 1][0];
-		moveHistory[i][1] = moveHistory[i - 1][1];
-	}
-	// store the new move at the beginning of the history
-	moveHistory[0][0] = from;
-	moveHistory[0][1] = to;
-}
+
 
 void Game::EndGame()
 {

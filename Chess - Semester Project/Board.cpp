@@ -1,10 +1,9 @@
 /*
 * Last Edited: 5/9/26
-* Author: Amna
+* Author: Armghan
 * Description:
-* - Added Last Move Tracking (positions and piece pointer) to support En Passant.
-* - Implemented const-qualified getters for safe board state inspection.
-* - Enhanced movePiece() to handle En Passant capture execution and side-pawn memory cleanup.
+*		Implemented: storeBoardHistory to save the current board state in FEN notation after each move
+*		Implemented: toFEN to convert the current board state to FEN notation
 */
 
 #include "Board.h"
@@ -64,6 +63,7 @@ Board::Board()
 	lastMovedPiece = nullptr;
 
 	lastCapture = 0;
+	lastPawnMove = 0;
 }
 
 Position Board::GetPiecePosition(Piece* piece) const
@@ -166,12 +166,15 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 		squares[to.row][to.col] = temp;
 		return false;
 	}
+
 	else if (ghost)
 	{
 		// ghost case to check for valid moves without actually moving
 		squares[from.row][from.col] = toMove;
 		squares[to.row][to.col] = temp;
 	}
+
+	// Move Case
 	else
 	{
 		// --- STEP 8 & 9: EN PASSANT CAPTURE EXECUTION---
@@ -232,7 +235,17 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			lastCapture = 0;
 		}
 		delete temp;
+
+		// Update Move Counters for 50 Move Rule
 		lastCapture++;
+		if (toMove->getType() == PAWN)
+			lastPawnMove = 0;
+		else
+			lastPawnMove++;
+
+		// Store Board State and Move History for Interface and Three Fold Repetition Rule
+		storeMoveHistory(from, to);
+		storeBoardHistory();
 
 		// Safely checks whether the moved piece is a King.
         // dynamic_cast returns nullptr if the piece is not actually a King.
@@ -249,6 +262,7 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 		{
 			rook->setMovedStatus(true);
 		}
+
 		
 	}
 	// --- PAWN PROMOTION DETECTION ---
@@ -265,13 +279,7 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			promotePawn(to, promotionChoice);
 		}
 	}
-	// --- Store Last Move ---
-	if (!ghost)
-	{
-		lastMoveFrom = from;
-		lastMoveTo = to;
-		lastMovedPiece = toMove;
-	}
+
 	return true;
 }
 
@@ -403,15 +411,106 @@ void Board::promotePawn(Position position, PieceType promotionType)
 
 }
 
-bool Board::fiftyMoveRule() const {return lastCapture >= 50;}
+void Board::storeMoveHistory(Position from, Position to)
+{
+	// Shift all previous moves back by one position
+	for (int i = 99; i > 0; i--)
+	{
+		moveHistory[i][0] = moveHistory[i - 1][0];
+		moveHistory[i][1] = moveHistory[i - 1][1];
+	}
+	// store the new move at the beginning of the history
+	moveHistory[0][0] = from;
+	moveHistory[0][1] = to;
+}
+
+void Board::storeBoardHistory()
+{
+	// Shift all previous board states back by one position
+	for (int i = 99; i > 0; i--)
+	{
+		boardHistory[i] = boardHistory[i - 1];
+	}
+	// store the new board state at the beginning of the history
+	boardHistory[0] = toFEN();
+}
+
+string Board::toFEN() const
+{
+	// store board state row wise
+	string fen = "";
+	for (int i = 0; i < 8; i++)
+	{
+		int emptyCount = 0;
+		for (int j = 0; j < 8; j++)
+		{
+			if (squares[i][j])
+			{
+				if (emptyCount > 0)
+				{
+					fen += to_string(emptyCount);
+					emptyCount = 0;
+				}
+				char symbol = squares[i][j]->getSymbol();
+				fen += symbol;
+			}
+			else
+			{
+				emptyCount++;
+			}
+		}
+		if (emptyCount > 0)
+			fen += to_string(emptyCount);
+		if (i < 7)
+			fen += '/';
+	}
+
+	// store casteling rights
+	
+	string castling = "";
+	if (whiteKing && static_cast<King*>(whiteKing)->getMovedStatus() == false)
+	{
+		if (squares[7][0] && static_cast<Rook*>(squares[7][0])->getMovedStatus() == false)
+			castling += 'Q';
+		if (squares[7][7] && static_cast<Rook*>(squares[7][7])->getMovedStatus() == false)
+			castling += 'K';
+	}
+
+	if (blackKing && static_cast<King*>(blackKing)->getMovedStatus() == false)
+	{
+		if (squares[0][0] && static_cast<Rook*>(squares[0][0])->getMovedStatus() == false)
+			castling += 'q';
+		if (squares[0][7] && static_cast<Rook*>(squares[0][7])->getMovedStatus() == false)
+			castling += 'k';
+	}
+
+	fen = fen + " " + (castling.empty() ? "-" : castling);
+
+	return fen;
+}
+
+bool Board::fiftyMoveRule() const {return lastCapture >= 50 && lastPawnMove >= 50;}
+bool Board::threeFoldRepetition() const
+{
+	int occurrences = 0;
+	string currentFEN = toFEN();
+	for (int i = 0; i < 100; i++)
+	{
+		if (boardHistory[i] == currentFEN)
+			occurrences++;
+		if (occurrences >= 3)
+			return true;
+	}
+	return false;
+}
 
 Piece* Board::getPiece(Position at) const {	return squares[at.row][at.col]; }
 
-Position Board::getLastMoveTo() const { return lastMoveTo; }
-
-Position Board::getLastMoveFrom() const { return lastMoveFrom; }
-
-Piece* Board::getLastMovedPiece() const { return lastMovedPiece; }
+Position(*Board::getMoveHistory())[2] { return moveHistory; }
+string* Board::getBoardHistory() { return boardHistory; }
+Position Board::getLastMoveFrom() const { return moveHistory[0][0]; }
+Position Board::getLastMoveTo() const { return moveHistory[0][1]; }
+Piece* Board::getLastMovedPiece() const { return getPiece(moveHistory[0][1]); }
 
 Board::~Board()
 {
