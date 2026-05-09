@@ -56,6 +56,11 @@ Board::Board()
 		for (int j = 0; j < 8; j++)
 			squares[i][j] = nullptr;
 
+	// --- Initialize En Passant Tracking ---
+	lastMoveFrom = { -1, -1 };
+	lastMoveTo = { -1, -1 };
+	lastMovedPiece = nullptr;
+
 	lastCapture = 0;
 }
 
@@ -167,6 +172,38 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 	}
 	else
 	{
+		// --- STEP 8 & 9: EN PASSANT CAPTURE EXECUTION---
+			// Detect if a PAWN moved diagonally into an EMPTY square
+		if (toMove->getType() == PAWN && from.col && temp != nullptr)
+		{
+			int victimRow = from.row;
+			int victimCol = from.col;
+
+			Piece* victimPawn = squares[victimRow][victimCol];
+
+			if (victimRow)
+			{
+				// 1. Remove it from the active pieces list
+				Piece** activePieces = (victimPawn->getColor() == BLACK) ? activePieceBlack : activePieceWhite;
+
+				for (int i = 0; i < 16; i++)
+				{
+					if (activePieces[i] == victimPawn)
+					{
+						activePieces[i] = nullptr;
+						break;
+					}
+				}
+
+				// 2. Delete the victim pawn and clear the square
+				delete victimPawn;
+				squares[victimRow][victimCol] = nullptr;
+
+				// 3. Reset 50-move rule counter because a capture happened
+				lastCapture = 0;
+			}
+		}
+
 		// --- CASTLING ROOK REPOSITIONING ---
 		// If a King moved 2 squares, we must move the Rook as well
 		if (toMove->getType() == KING && abs(to.col - from.col) == 2)
@@ -226,7 +263,13 @@ bool Board::movePiece(Position from, Position to, bool ghost )
 			promotePawn(to, promotionChoice);
 		}
 	}
-	
+	// --- Store Last Move ---
+	if (!ghost)
+	{
+		lastMoveFrom = from;
+		lastMoveTo = to;
+		lastMovedPiece = toMove;
+	}
 	return true;
 }
 
@@ -349,6 +392,12 @@ void Board::promotePawn(Position position, PieceType promotionType)
 bool Board::fiftyMoveRule() const {return lastCapture >= 50;}
 
 Piece* Board::getPiece(Position at) const {	return squares[at.row][at.col]; }
+
+Position Board::getLastMoveTo() const { return lastMoveTo; }
+
+Position Board::getLastMoveFrom() const { return lastMoveFrom; }
+
+Piece* Board::getLastMovedPiece() const { return lastMovedPiece; }
 
 Board::~Board()
 {

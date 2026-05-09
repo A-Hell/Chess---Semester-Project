@@ -119,10 +119,42 @@ bool Pawn::isValidMove(Position from, Position to, const Board& board) const
 			return false;
 	}
 
-	// Diagonal Check for capture
-	if (!board.getPiece(to) && colDis == 1)
-		return false;
+	//---En Passant Rules ---
+	// 1. Check if it's a diagonal move
+	if (colDis == 1)
+	{
+		if (board.getPiece(to))
+			return true;
 
+		// --- Detect En Passant ---
+	    // If the target square is EMPTY, check if En Passant is possible
+		if (!board.getPiece(to))
+		{
+			Piece* sidePiece = board.getPiece(Position{ from.row, to.col });
+			
+			if (!sidePiece)
+				return false;
+
+			if (sidePiece->getType() != PAWN)
+				return false;
+
+			if (sidePiece->getColor() == this->colour)
+				return false;
+
+			if (board.getLastMovedPiece() != sidePiece)
+				return false;
+
+			Position lastFrom = board.getLastMoveFrom();
+			Position lastTo = board.getLastMoveTo();
+
+			if (abs(lastFrom.row - lastTo.row) != 2)
+				return false;
+
+			return true;
+		}
+
+
+	}
 	return true;
 }
 

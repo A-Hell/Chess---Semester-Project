@@ -21,6 +21,9 @@ class Board
 	Piece* activePieceBlack[16]; // Array of pointers to active pieces for Black.
 	Piece* whiteKing;
 	Piece* blackKing;
+	Position lastMoveFrom;   // Add Last Move Tracking
+	Position lastMoveTo;
+	Piece* lastMovedPiece;
 	int lastCapture; // numbers of moves since last capture - used for 50 move rule
 public:
 	Board(); // Initializes the chessboard and sets up pieces.
@@ -35,6 +38,10 @@ public:
 	bool lookForMoves(Color on); // Check if the player has any valid moves left
 	bool fiftyMoveRule() const; // Check if its been 50 moves without capture or not
 	Piece* getPiece(Position at) const;// Returns the piece at a specific coordinate (needed Interface)
-	
+	//getters for last move tracking
+	Position getLastMoveFrom() const;
+	Position getLastMoveTo() const;
+	Piece* getLastMovedPiece() const;
+
 	~Board(); // Cleans up any dynamically allocated memory on game.
 };
