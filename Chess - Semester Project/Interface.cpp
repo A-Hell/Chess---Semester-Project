@@ -2,7 +2,7 @@
 * Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-		Implemented: renderMoveHistory to print the last 5 moves
+		Implemented: renderEndGame to display the result of the game and reason for endgame, it gets the reason ans uses swtich case to display the correct message
 */
 
 #include "Interface.h"
@@ -124,6 +124,26 @@ void Interface::renderMoveHistory(const Position moveHistory[100][2])
         
 	}
 
+}
+
+void Interface::renderEndGame(char reason, Color winner)
+{
+	cout << BOLD+GRAY+UNDERLINE+"\n----- Game Over -----\n" + RESET;
+    switch (reason)
+    {
+        case 'C':
+            cout << endl << RED + "Checkmate Game over! " + RESET << ((winner == WHITE) ? (GRAY + "Black" + RESET) : (WHITE_ + "White" + RESET)) << RED + " Won " + RESET << endl;
+		break;
+        case 'S':
+            cout << endl << YELLOW + "Stalemate Game over! Its a Draw." + RESET << endl;
+			break;
+        case 'T':
+			cout << endl << YELLOW + "Three Fold Repetition Game over! Its a Draw." + RESET << endl;
+            break;
+		case 'F':
+            cout << endl << YELLOW + "50 Move Rule Game over! Its a Draw." + RESET << endl;
+			break;
+    }
 }
 
 PieceType Interface::getPromotionInput()

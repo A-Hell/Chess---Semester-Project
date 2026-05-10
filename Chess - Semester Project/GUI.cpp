@@ -1,11 +1,10 @@
 /*
-* Last Edited: 5/9/26
+* Last Edited: 5/10/26
 * Author: Armaghan
 * Description:
-*           Implemented: renderHeader() to display game title and current player
-*           Implemented: renderCurrentPlayer() to show which player's turn it is
-* 		    Implemented: renderCheckAlert() to display a check alert when a player is in check 
-*           Added: more Cached Variables to render multiple frames within 1 move
+*           Implemented: renderMoveHistory to display the history of moves made, since we had more space here it show 10 moves instead of 5 like the console interface
+*           Implemented: getPromotionInput which uses 4 standard buttons and forces the user to choose a piece for promotion
+*           Added: renderEndGame to display the result of the game and reason for endgame, and then forces the user to exit bcz console does the same
 */
 
 #include "GUI.h"
@@ -48,6 +47,8 @@ const Board* GUI::cachedBoard = nullptr;
 Color GUI::cachedCurrentPlayer = WHITE;
 bool GUI::cachedInCheck = false;
 Position GUI::highlightSquare = {-1, -1};
+static Position cachedMoveHistoryArray[100][2];
+static bool moveHistoryCached = false;
 
 void GUI::init(bool activeGUI)
 {
@@ -63,7 +64,7 @@ void GUI::init(bool activeGUI)
             }
             if (!texturesLoaded)
             {
-                std::string basePath = "../Assets/Sprites/";
+                string basePath = "../Assets/Sprites/";
                 boardTexture.loadFromFile(basePath + "board.png");
 
                 if (boardTexture.getSize().x > 0) // successfully loaded
@@ -224,7 +225,7 @@ void GUI::renderBoard(const Board& board, bool isCheck)
 				// Safety Net for when Piece textures fail to load
 				else if (fontLoaded)
 				{
-					sf::Text text(font, std::string(1, p->getSymbol()), 30);
+					sf::Text text(font, string(1, p->getSymbol()), 30);
 					if (p->getColor() == WHITE)
 						text.setFillColor(sf::Color::White);
 					else
@@ -237,9 +238,35 @@ void GUI::renderBoard(const Board& board, bool isCheck)
 					text.setPosition({c * tileSize + 10.0f, r * tileSize + txtYOff});
 					window->draw(text);
 				}
-            }
-        }
-    }
+			}
+
+			// Draw Coordinates (Top row and Leftmost column)
+			if (fontLoaded)
+			{
+				// Rightmost column: draw 1-8 (mapped from r)
+				if (c == 7)
+				{
+					sf::Text rankText(font, to_string(8 - r), 14);
+					rankText.setFillColor((r + c) % 2 == 0 ? sf::Color(181, 136, 99) : sf::Color(240, 217, 181));
+					rankText.setStyle(sf::Text::Bold);
+					// Draw near the top right of the rightmost tiles
+					rankText.setPosition({ c * tileSize + tileSize - 20.0f, r * tileSize + 10.0f });
+					window->draw(rankText);
+				}
+
+				// Top row: draw a-h 
+				if (r == 0)
+				{
+					sf::Text fileText(font, string(1, 'a' + c), 14);
+					fileText.setFillColor((r + c) % 2 == 0 ? sf::Color(181, 136, 99) : sf::Color(240, 217, 181));
+					fileText.setStyle(sf::Text::Bold);
+					// Draw in top left corner of the tile
+					fileText.setPosition({ c * tileSize + 9.0f, 10.0f });
+					window->draw(fileText);
+				}
+			}
+		}
+	}
 }
 
 void GUI::getMoveInput(Position& from, Position& to)
@@ -252,7 +279,7 @@ void GUI::getMoveInput(Position& from, Position& to)
 
     while (window->isOpen())
     {
-        while (std::optional event = window->pollEvent())
+        while (optional event = window->pollEvent())
         {
             if (event->is<sf::Event::Closed>())
             {
@@ -279,6 +306,9 @@ void GUI::getMoveInput(Position& from, Position& to)
                                 renderBoard(*cachedBoard, false);
                                 renderCurrentPlayer(cachedCurrentPlayer);
                                 renderCheckAlert(cachedInCheck);
+                                if (moveHistoryCached) {
+                                    renderMoveHistory(cachedMoveHistoryArray);
+                                }
                                 window->display();
                             }
                         }
@@ -307,7 +337,7 @@ void GUI::renderCurrentPlayer(Color currentPlayer)
 
     if (!window || !fontLoaded) return;
 
-    std::string turnStr = (currentPlayer == WHITE) ? "[Current Player: White]" : "[Current Player: Black]";
+    string turnStr = (currentPlayer == WHITE) ? "[Current Player: White]" : "[Current Player: Black]";
     sf::Text turnText(font, turnStr, 26);
 
     // Set color based on player to add a visual cue.
@@ -351,12 +381,196 @@ void GUI::renderCheckAlert(bool inCheck)
 
 void GUI::renderMoveHistory(const Position moveHistory[100][2])
 {
-    // Implementation
+    if (!window || !fontLoaded) return;
+
+    // Cache the move history so it can be re-rendered during hovering/selection updates
+    for (int i = 0; i < 100; i++) {
+        cachedMoveHistoryArray[i][0] = moveHistory[i][0];
+        cachedMoveHistoryArray[i][1] = moveHistory[i][1];
+    }
+    moveHistoryCached = true;
+
+    // Title
+    sf::Text title(font, "Move History", 24);
+    title.setFillColor(sf::Color::White);
+    title.setStyle(sf::Text::Underlined);
+
+    sf::FloatRect titleRect = title.getLocalBounds();
+    title.setOrigin({ titleRect.position.x + titleRect.size.x / 2.0f, titleRect.position.y + titleRect.size.y / 2.0f });
+    title.setPosition({ boardSize + (windowWidth - boardSize) / 2.0f, 200.0f });
+    window->draw(title);
+
+    // Count valid moves
+    int moveCount = 0;
+    for (int i = 0; i < 100; i++)
+    {
+        // if a move is empty Skip it
+        if (moveHistory[i][0].row == 0 && moveHistory[i][0].col == 0 && moveHistory[i][1].row == 0 && moveHistory[i][1].col == 0)
+            continue;
+        moveCount++;
+    }
+
+    // Only show last 10 moves
+    int startIdx = 0;
+	int endIdx = (moveCount > 10 ? 10 : moveCount);
+    float startY = 240.0f;
+
+    for (int i = startIdx; i < endIdx; i++)
+    {
+
+        string moveStr = to_string(moveCount - i ) + ". ";
+        moveStr += (char)('a' + moveHistory[i][0].col);
+        moveStr += to_string(8 - moveHistory[i][0].row);
+        moveStr += " -> ";
+        moveStr += (char)('a' + moveHistory[i][1].col);
+        moveStr += to_string(8 - moveHistory[i][1].row);
+
+        sf::Text moveText(font, moveStr, 18);
+        moveText.setFillColor(sf::Color(200, 200, 200));
+
+        sf::FloatRect textRect = moveText.getLocalBounds();
+        moveText.setOrigin({ textRect.position.x + textRect.size.x / 2.0f, textRect.position.y + textRect.size.y / 2.0f });
+        moveText.setPosition({ boardSize + (windowWidth - boardSize) / 2.0f, startY + (i - startIdx) * 28.0f });
+
+        window->draw(moveText);
+    }
 }
 
 PieceType GUI::getPromotionInput()
 {
-    return QUEEN; // Default to Queen for now
+    if (!window || !fontLoaded) return QUEEN; // Default if no window
+
+    float promptY = 550.0f;
+    float panelCenter = boardSize + (windowWidth - boardSize) / 2.0f;
+
+    sf::Text prompt(font, "Pawn Promotion", 24);
+    prompt.setFillColor(sf::Color::Yellow);
+    prompt.setStyle(sf::Text::Bold);
+    sf::FloatRect promptRect = prompt.getLocalBounds();
+    prompt.setOrigin({ promptRect.position.x + promptRect.size.x / 2.0f, promptRect.position.y + promptRect.size.y / 2.0f });
+    prompt.setPosition({ panelCenter, promptY });
+
+    string options[4] = { "Queen", "Rook", "Bishop", "Knight" };
+    PieceType types[4] = { QUEEN, ROOK, BISHOP, KNIGHT };
+    sf::RectangleShape buttons[4];
+    optional<sf::Text> btnTexts[4];
+
+    for (int i = 0; i < 4; i++) {
+        buttons[i].setSize({ 100.0f, 35.0f });
+        buttons[i].setFillColor(sf::Color(80, 80, 80));
+        buttons[i].setOutlineThickness(2.0f);
+        buttons[i].setOutlineColor(sf::Color(120, 120, 120));
+        buttons[i].setOrigin({ 50.0f, 17.5f });
+
+        // 2x2 grid for buttons
+        float bx = panelCenter + (i % 2 == 0 ? -60.0f : 60.0f);
+        float by = promptY + 45.0f + (i / 2) * 45.0f;
+        buttons[i].setPosition({ bx, by });
+
+        btnTexts[i].emplace(font, options[i], 18);
+        btnTexts[i]->setFillColor(sf::Color::White);
+
+        sf::FloatRect tr = btnTexts[i]->getLocalBounds();
+        btnTexts[i]->setOrigin({ tr.position.x + tr.size.x / 2.0f, tr.position.y + tr.size.y / 2.0f });
+        btnTexts[i]->setPosition({ bx, by });
+    }
+
+    // Render the scene once with the prompt included
+    window->clear(sf::Color(50, 50, 50));
+    renderHeader();
+    if (cachedBoard) renderBoard(*cachedBoard, false);
+    renderCurrentPlayer(cachedCurrentPlayer);
+    renderCheckAlert(cachedInCheck);
+    if (moveHistoryCached) renderMoveHistory(cachedMoveHistoryArray);
+
+    window->draw(prompt);
+    for (int i = 0; i < 4; i++) {
+        window->draw(buttons[i]);
+        window->draw(*btnTexts[i]);
+    }
+    window->display();
+
+    // Loop until user clicks a valid button
+    while (window->isOpen())
+    {
+        while (optional event = window->pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+            {
+                window->close();
+                exit(0);
+            }
+            if (auto mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
+            {
+                if (mouseButton->button == sf::Mouse::Button::Left)
+                {
+                    sf::Vector2f mousePos((float)mouseButton->position.x, (float)mouseButton->position.y);
+
+                    for (int i = 0; i < 4; i++) {
+                        if (buttons[i].getGlobalBounds().contains(mousePos)) {
+                            return types[i];
+                        }
+                    }
+                }
+            }
+        }
+    }
+	// If window is closed without selection, default to Queen
+	return QUEEN;
+}
+
+void GUI::renderEndGame(char reason)
+{
+	if (!window || !fontLoaded) return;
+
+	// Gray Overlay on the board to indicate game over
+	sf::RectangleShape grayOverlay(sf::Vector2f((float)boardSize - 10.0f, (float)boardSize - 10.0f));
+	grayOverlay.setFillColor(sf::Color(60, 60, 60, 180)); // Gray with transparency
+	window->draw(grayOverlay);
+
+	string message = "";
+	if (reason == 'C') message = (cachedCurrentPlayer == WHITE) ? "Checkmate! Black Won" : "Checkmate! White Won";
+	else if (reason == 'S') message = "Stalemate! Draw";
+	else if (reason == 'F') message = "50 Move Rule! Draw";
+	else if (reason == 'T') message = "3-Fold Repetition! Draw";
+
+	// Draw the Game Over Message 
+	sf::Text alertText(font, message, 40);
+	alertText.setFillColor(sf::Color::White);
+	alertText.setStyle(sf::Text::Bold);
+
+	sf::FloatRect textRect = alertText.getLocalBounds();
+	alertText.setOrigin({ textRect.position.x + textRect.size.x / 2.0f, textRect.position.y + textRect.size.y / 2.0f });
+	alertText.setPosition({ boardSize / 2.0f, boardSize / 2.0f - 20.0f });
+
+	// Exit prompt
+	sf::Text exitPrompt(font, "Press any key or click to exit...", 20);
+	exitPrompt.setFillColor(sf::Color(200, 200, 200));
+	sf::FloatRect exitRect = exitPrompt.getLocalBounds();
+	exitPrompt.setOrigin({ exitRect.position.x + exitRect.size.x / 2.0f, exitRect.position.y + exitRect.size.y / 2.0f });
+	exitPrompt.setPosition({ boardSize / 2.0f, boardSize / 2.0f + 40.0f });
+
+	window->draw(alertText);
+	window->draw(exitPrompt);
+	window->display();
+
+	// Loop until user makes and input to exit
+	while (window->isOpen())
+	{
+		while (optional event = window->pollEvent())
+		{
+			if (event->is<sf::Event::Closed>())
+			{
+				window->close();
+				exit(0);
+			}
+			if (event->is<sf::Event::KeyPressed>() || event->is<sf::Event::MouseButtonPressed>())
+			{
+				window->close();
+				exit(0);
+			}
+		}
+	}
 }
 
 void GUI::displayWindow()

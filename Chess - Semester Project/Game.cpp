@@ -1,8 +1,8 @@
 /*
-* Last Edited: 5/8/26
-* Author: Rayyan
+* Last Edited: 5/10/26
+* Author: Armaghan
 * Description:
-*		
+*		Modified: The game over messages are now printed by the interface Classes instead of the Game class
 */
 
 #include "Game.h"
@@ -79,25 +79,34 @@ void Game::gameLoop()
 		if (Checkmate)
 		{
 			generateFrame();
-			cout << endl << RED + "Checkmate Game over! " + RESET << ((currentPlayer == WHITE) ? (GRAY + "Black" + RESET) : (WHITE_ + "White" + RESET)) << RED + " Won " + RESET << endl;
+			if (GUIEnabled) 
+				GUI::renderEndGame('C');
+			else 
+				Interface::renderEndGame('C', (currentPlayer == WHITE) ? BLACK : WHITE);
 			break;
 		}
 		else if (Stalemate)
 		{
 			generateFrame();
-			cout << endl << YELLOW + "Stalemate Game over! Its a Draw." + RESET << endl;
+			if (GUIEnabled) GUI::renderEndGame('S');
+			else 
+				Interface::renderEndGame('S');
 			break;
 		}
 		else if (board->fiftyMoveRule())
 		{
 			generateFrame();
-			cout << endl << YELLOW + "50 Move Rule Game over! Its a Draw." + RESET << endl;
+			if (GUIEnabled) GUI::renderEndGame('F');
+			else 
+				Interface::renderEndGame('F');
 			break;
 		}
 		else if (board->threeFoldRepetition())
 		{
 			generateFrame();
-			cout << endl << YELLOW + "Three Fold Repetition Game over! Its a Draw." + RESET << endl;
+			if (GUIEnabled) GUI::renderEndGame('T');
+			else 
+				Interface::renderEndGame('T');
 			break;
 		}
 		else

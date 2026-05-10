@@ -3,10 +3,11 @@
 // This is supposed to replace the Interface class exactly and fit right in with rest of the code but instead of using console output it will use SFML
 
 /*
-* Last Edited: 5/8/26
+* Last Edited: 5/10/26
 * Author: Armaghan
 * Description:
-*           Added: displayWindow() function to show the window after rendering is done, not in Interface bcz there things are rendered sequentially
+*           Added: renderEndGame to display the result of the game and reason for endgame
+*           Added: More Cached Variables
 */
 
 #pragma once
@@ -67,7 +68,8 @@ public:
     static void renderBoard(const Board& board, bool isCheck = false);
     static void renderCurrentPlayer(Color currentPlayer);
     static void renderCheckAlert(bool inCheck);
-    static void renderMoveHistory(const Position moveHistory[100][2]);
+	static void renderMoveHistory(const Position moveHistory[100][2]);
+	static void renderEndGame(char reason);
 	static void displayWindow(); // function to display the window after rendering is done
 
     // Sound functions -- These Sounds Work Independatly of GUI or Interface

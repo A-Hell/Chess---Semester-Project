@@ -5,7 +5,7 @@
 * Last Edited: 5/7/26
 * Author: Rayyan
 * Description:
-	- Added: renderMoveHistory to render last 5 moves
+	Added: renderEndGame to display the result of the game and reason for endgame which was previously handled by the Game class
  */
 
 #pragma once
@@ -22,6 +22,7 @@ public:
     static void renderCurrentPlayer(Color currentPlayer); // Displays which player's turn it is
     static void renderCheckAlert(bool inCheck); // Displays a check alert if the current player is in check
 	static void renderMoveHistory(const Position moveHistory[100][2]); // Displays the history of moves made in the game
+    static void renderEndGame(char reason, Color winner = WHITE); 
 
 	// Input functions
 	static PieceType getPromotionInput(); // Captures user input for pawn promotion
