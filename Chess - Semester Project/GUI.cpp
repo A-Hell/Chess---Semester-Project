@@ -56,7 +56,7 @@ void GUI::init(bool activeGUI)
     {
         if (!window)
         {
-            window = new sf::RenderWindow(sf::VideoMode({ windowWidth, windowHeight }), "Chess Game");
+            window = new sf::RenderWindow(sf::VideoMode({ windowWidth, windowHeight }), "Chess Game", sf::Style::Titlebar | sf::Style::Close);
             if (!fontLoaded)
             {
                 if (font.openFromFile("C:/Windows/Fonts/calibri.ttf"))
