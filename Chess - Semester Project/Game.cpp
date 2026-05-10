@@ -118,6 +118,7 @@ void Game::generateFrame(bool invalidMove)
 		GUI::renderCheckAlert(inCheck);
 		GUI::renderCurrentPlayer(currentPlayer);
 		GUI::renderMoveHistory(board->getMoveHistory());
+		GUI::displayWindow();
 	}
 	else
 	{

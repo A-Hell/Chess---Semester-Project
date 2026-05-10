@@ -6,8 +6,7 @@
 * Last Edited: 5/8/26
 * Author: Armaghan
 * Description:
-*           Added: Sound Effects for moves, captures, checks, promotions, castling, and errors
-*           Added: Visual Effect for chosen piece (highlighting the square of the piece being moved)  
+*           Added: displayWindow() function to show the window after rendering is done, not in Interface bcz there things are rendered sequentially
 */
 
 #pragma once
@@ -54,8 +53,10 @@ private:
 
     static bool soundsLoaded;
 
-    // Visual Effect for chosen piece
+    //Cached Vaiables For Displaying multiple Frames withing 1 move
     static const Board* cachedBoard;
+    static Color cachedCurrentPlayer;
+    static bool cachedInCheck;
     static Position highlightSquare;
 
 public:
@@ -67,6 +68,7 @@ public:
     static void renderCurrentPlayer(Color currentPlayer);
     static void renderCheckAlert(bool inCheck);
     static void renderMoveHistory(const Position moveHistory[100][2]);
+	static void displayWindow(); // function to display the window after rendering is done
 
     // Sound functions -- These Sounds Work Independatly of GUI or Interface
     // since they use SFML's audio module, they are placed here

@@ -2,9 +2,10 @@
 * Last Edited: 5/9/26
 * Author: Armaghan
 * Description:
-*           Modified: init() to draw window only if GUI selected
-*           Implemented: Sounds for moves, captures, checks, promotions, castling, and errors
-*           Implemented: Visual Effect for chosen piece 
+*           Implemented: renderHeader() to display game title and current player
+*           Implemented: renderCurrentPlayer() to show which player's turn it is
+* 		    Implemented: renderCheckAlert() to display a check alert when a player is in check 
+*           Added: more Cached Variables to render multiple frames within 1 move
 */
 
 #include "GUI.h"
@@ -41,9 +42,11 @@ sf::Sound* GUI::checkSound = nullptr;
 sf::Sound* GUI::promoteSound = nullptr;
 sf::Sound* GUI::castleSound = nullptr;
 sf::Sound* GUI::errorSound = nullptr;
-
 bool GUI::soundsLoaded = false;
+
 const Board* GUI::cachedBoard = nullptr;
+Color GUI::cachedCurrentPlayer = WHITE;
+bool GUI::cachedInCheck = false;
 Position GUI::highlightSquare = {-1, -1};
 
 void GUI::init(bool activeGUI)
@@ -55,7 +58,7 @@ void GUI::init(bool activeGUI)
             window = new sf::RenderWindow(sf::VideoMode({ windowWidth, windowHeight }), "Chess Game");
             if (!fontLoaded)
             {
-                if (font.openFromFile("C:/Windows/Fonts/arial.ttf"))
+                if (font.openFromFile("C:/Windows/Fonts/calibri.ttf"))
                     fontLoaded = true;
             }
             if (!texturesLoaded)
@@ -128,16 +131,35 @@ void GUI::close()
 
 void GUI::renderHeader()
 {
-    // Draw header
+    if (!window || !fontLoaded) return;
+
+    window->clear(sf::Color(50, 50, 50));
+
+    // Background for the side panel (island)
+    sf::RectangleShape sidePanel(sf::Vector2f((float)(windowWidth - boardSize), (float)windowHeight));
+    sidePanel.setPosition({ (float)boardSize, 0.0f });
+    sidePanel.setFillColor(sf::Color(40, 40, 40));
+    window->draw(sidePanel);
+
+    // Header Text
+    sf::Text header(font, "Chess Game", 42);
+    header.setFillColor(sf::Color::Cyan);
+    header.setStyle(sf::Text::Bold);
+
+    // Center the header horizontally in the side panel
+    sf::FloatRect textRect = header.getLocalBounds();
+    header.setOrigin({ textRect.position.x + textRect.size.x / 2.0f, textRect.position.y + textRect.size.y / 2.0f });
+    header.setPosition({ boardSize + (windowWidth - boardSize) / 2.0f, 40.0f });
+
+    window->draw(header);
 }
 
 void GUI::renderBoard(const Board& board, bool isCheck)
 {
-    // store board for in Move changes
-    cachedBoard = &board;
+	// store board for in Move changes
+	cachedBoard = &board;
 
-    if (!window) return;
-    window->clear(sf::Color(50, 50, 50));
+	if (!window) return;
 
 	// Render the board background if texture is loaded
     if (texturesLoaded)
@@ -218,7 +240,6 @@ void GUI::renderBoard(const Board& board, bool isCheck)
             }
         }
     }
-    window->display();
 }
 
 void GUI::getMoveInput(Position& from, Position& to)
@@ -253,14 +274,19 @@ void GUI::getMoveInput(Position& from, Position& to)
                             fromSelected = true;
                             highlightSquare = from;
                             if (cachedBoard) {
+                                window->clear(sf::Color(50, 50, 50));
+                                renderHeader();
                                 renderBoard(*cachedBoard, false);
+                                renderCurrentPlayer(cachedCurrentPlayer);
+                                renderCheckAlert(cachedInCheck);
+                                window->display();
                             }
                         }
                         else
                         {
                             to.row = r;
                             to.col = c;
-                            highlightSquare = {-1, -1}; // reset floating
+                            highlightSquare = {-1, -1}; // reset floating piece
                             return;
                         }
                     }
@@ -277,12 +303,50 @@ bool GUI::isValidInput(int row, int col)
 
 void GUI::renderCurrentPlayer(Color currentPlayer)
 {
-    // Implementation
+    cachedCurrentPlayer = currentPlayer;
+
+    if (!window || !fontLoaded) return;
+
+    std::string turnStr = (currentPlayer == WHITE) ? "[Current Player: White]" : "[Current Player: Black]";
+    sf::Text turnText(font, turnStr, 26);
+
+    // Set color based on player to add a visual cue.
+    turnText.setFillColor(currentPlayer == WHITE ? sf::Color(240, 240, 240) : sf::Color(150, 150, 150));
+    turnText.setStyle(sf::Text::Bold);
+
+    sf::FloatRect textRect = turnText.getLocalBounds();
+    turnText.setOrigin({ textRect.position.x + textRect.size.x / 2.0f, textRect.position.y + textRect.size.y / 2.0f });
+    // Position it below the header
+    turnText.setPosition({ boardSize + (windowWidth - boardSize) / 2.0f, 100.0f });
+
+    window->draw(turnText);
 }
 
 void GUI::renderCheckAlert(bool inCheck)
 {
-    // Implementation
+    cachedInCheck = inCheck;
+
+    if (!window || !fontLoaded) return;
+
+    if (inCheck)
+    {
+		// Red Overlay on the board to indicate danger
+        sf::RectangleShape redOverlay(sf::Vector2f((float)boardSize - 10.0f, (float)boardSize - 10.0f));
+        redOverlay.setFillColor(sf::Color(255, 0, 0, 30)); // 30 is tranparecy
+        window->draw(redOverlay);
+
+		// Draw the Text Alert
+        sf::Text alertText(font, "Your King is in Danger!", 28);
+        alertText.setFillColor(sf::Color(255, 60, 60));
+        alertText.setStyle(sf::Text::Bold);
+
+        sf::FloatRect textRect = alertText.getLocalBounds();
+        alertText.setOrigin({ textRect.position.x + textRect.size.x / 2.0f + 5.0f, textRect.position.y + textRect.size.y / 2.0f  + 5.0f});
+        // Put it below current player
+        alertText.setPosition({ boardSize + (windowWidth - boardSize) / 2.0f + 7.0f, 140.0f });
+
+        window->draw(alertText);
+    }
 }
 
 void GUI::renderMoveHistory(const Position moveHistory[100][2])
@@ -293,6 +357,12 @@ void GUI::renderMoveHistory(const Position moveHistory[100][2])
 PieceType GUI::getPromotionInput()
 {
     return QUEEN; // Default to Queen for now
+}
+
+void GUI::displayWindow()
+{
+    if (window)
+		window->display();
 }
 
 void GUI::playMoveSound()
