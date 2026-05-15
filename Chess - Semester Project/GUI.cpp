@@ -523,13 +523,21 @@ void GUI::renderEndGame(char reason)
 {
 	if (!window || !fontLoaded) return;
 
+	// Render the scene once with the overlay included
+	window->clear(sf::Color(50, 50, 50));
+	renderHeader();
+	if (cachedBoard) renderBoard(*cachedBoard, false);
+	renderCurrentPlayer(cachedCurrentPlayer);
+	renderCheckAlert(cachedInCheck);
+	if (moveHistoryCached) renderMoveHistory(cachedMoveHistoryArray);
+
 	// Gray Overlay on the board to indicate game over
 	sf::RectangleShape grayOverlay(sf::Vector2f((float)boardSize - 10.0f, (float)boardSize - 10.0f));
 	grayOverlay.setFillColor(sf::Color(60, 60, 60, 180)); // Gray with transparency
 	window->draw(grayOverlay);
 
 	string message = "";
-	if (reason == 'C') message = (cachedCurrentPlayer == WHITE) ? "Checkmate! Black Won" : "Checkmate! White Won";
+	if (reason == 'C') message = (cachedCurrentPlayer == WHITE) ? "Checkmate! White Won" : "Checkmate! Black Won";
 	else if (reason == 'S') message = "Stalemate! Draw";
 	else if (reason == 'F') message = "50 Move Rule! Draw";
 	else if (reason == 'T') message = "3-Fold Repetition! Draw";

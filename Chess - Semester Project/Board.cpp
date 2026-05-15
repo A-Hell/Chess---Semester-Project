@@ -65,6 +65,12 @@ Board::Board()
 
 	lastCapture = 0;
 	lastPawnMove = 0;
+
+	//setupCheckmateTest(); 
+	//setupStalemateTest();
+	//setupCastlingTest();
+	//setupEnPassantTest();
+	//setupPromotionTest();
 }
 
 Position Board::GetPiecePosition(Piece* piece) const
@@ -83,54 +89,6 @@ void Board::setPiecePosition(Piece* piece, Position pos)
 		return;
 
 	squares[pos.row][pos.col] = piece;
-}
-
-void Board::setupCastlingTest()
-{
-	// Clear the board and delete existing pieces
-	for (int i = 0; i < 8; i++)
-		for (int j = 0; j < 8; j++)
-		{
-			delete squares[i][j];
-			squares[i][j] = nullptr;
-		}
-
-	// Clear active piece lists
-	for (int i = 0; i < 16; i++)
-	{
-		activePieceWhite[i] = nullptr;
-		activePieceBlack[i] = nullptr;
-	}
-
-	whiteKing = nullptr;
-	blackKing = nullptr;
-
-	// Setup White Castling (Kingside and Queenside)
-	squares[7][4] = new King(WHITE);
-	whiteKing = squares[7][4];
-	squares[7][0] = new Rook(WHITE);
-	squares[7][7] = new Rook(WHITE);
-	squares[6][7] = new Pawn(WHITE);
-
-	// Setup Black Castling (Kingside and Queenside)
-	squares[0][4] = new King(BLACK);
-	blackKing = squares[0][4];
-	squares[0][0] = new Rook(BLACK);
-	squares[0][7] = new Rook(BLACK);
-
-	// Add an enemy piece to test "Castling through check"
-	squares[1][3] = new Rook(BLACK);
-
-	// Rebuild active piece arrays for accurate attack detection
-	activePieceWhite[0] = squares[7][0];
-	activePieceWhite[1] = squares[7][4];
-	activePieceWhite[2] = squares[7][7];
-	activePieceWhite[3] = squares[6][7];
-
-	activePieceBlack[0] = squares[0][0];
-	activePieceBlack[1] = squares[0][4];
-	activePieceBlack[2] = squares[0][7];
-	activePieceBlack[3] = squares[1][3];
 }
 
 bool Board::movePiece(Position from, Position to, bool activeGUI, bool ghost )
@@ -532,4 +490,182 @@ Board::~Board()
 		for (int j = 0; j < 8; j++)
 			if (squares[i][j])
 				delete (squares[i][j]);
+}
+
+void Board::setupCastlingTest()
+{
+	// Clear the board and delete existing pieces
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
+			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	whiteKing = nullptr;
+	blackKing = nullptr;
+
+	// Setup White Castling (Kingside and Queenside)
+	squares[7][4] = new King(WHITE);
+	whiteKing = squares[7][4];
+	squares[7][0] = new Rook(WHITE);
+	squares[7][7] = new Rook(WHITE);
+	squares[6][7] = new Pawn(WHITE);
+
+	// Setup Black Castling (Kingside and Queenside)
+	squares[0][4] = new King(BLACK);
+	blackKing = squares[0][4];
+	squares[0][0] = new Rook(BLACK);
+	squares[0][7] = new Rook(BLACK);
+
+	// Add an enemy piece to test "Castling through check"
+	squares[1][3] = new Rook(BLACK);
+
+	// Rebuild active piece arrays for accurate attack detection
+	activePieceWhite[0] = squares[7][0];
+	activePieceWhite[1] = squares[7][4];
+	activePieceWhite[2] = squares[7][7];
+	activePieceWhite[3] = squares[6][7];
+
+	activePieceBlack[0] = squares[0][0];
+	activePieceBlack[1] = squares[0][4];
+	activePieceBlack[2] = squares[0][7];
+	activePieceBlack[3] = squares[1][3];
+}
+
+void Board::setupEnPassantTest()
+{
+	// Clear the board and delete existing pieces
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
+			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	// Setup a board state specifically to test En Passant
+	squares[7][4] = new King(WHITE);
+	whiteKing = squares[7][4];
+	squares[0][4] = new King(BLACK);
+	blackKing = squares[0][4];
+
+	squares[3][4] = new Pawn(WHITE);
+	squares[1][5] = new Pawn(BLACK);
+
+	activePieceWhite[0] = squares[7][4];
+	activePieceWhite[1] = squares[3][4];
+
+	activePieceBlack[0] = squares[0][4];
+	activePieceBlack[1] = squares[1][5];
+}
+
+void Board::setupPromotionTest()
+{
+	// Clear the board and delete existing pieces
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
+			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	// Setup a board state specifically to test Pawn Promotion
+	squares[7][4] = new King(WHITE);
+	whiteKing = squares[7][4];
+	squares[0][4] = new King(BLACK);
+	blackKing = squares[0][4];
+
+	squares[1][0] = new Pawn(WHITE);
+
+	activePieceWhite[0] = squares[7][4];
+	activePieceWhite[1] = squares[1][0];
+
+	activePieceBlack[0] = squares[0][4];
+}
+
+void Board::setupStalemateTest()
+{
+	// Clear the board and delete existing pieces
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
+			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	// Setup a board state specifically to test Stalemate
+	squares[0][0] = new King(BLACK);
+	blackKing = squares[0][0];
+
+	squares[2][1] = new King(WHITE);
+	whiteKing = squares[2][1];
+
+	squares[1][2] = new Queen(WHITE);
+
+	activePieceWhite[0] = squares[2][1];
+	activePieceWhite[1] = squares[1][2];
+
+	activePieceBlack[0] = squares[0][0];
+}
+
+void Board::setupCheckmateTest()
+{
+	// Clear the board and delete existing pieces
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+		{
+			delete squares[i][j];
+			squares[i][j] = nullptr;
+		}
+
+	// Clear active piece lists
+	for (int i = 0; i < 16; i++)
+	{
+		activePieceWhite[i] = nullptr;
+		activePieceBlack[i] = nullptr;
+	}
+
+	// Setup a board state specifically to test Checkmate
+	squares[0][0] = new King(BLACK);
+	blackKing = squares[0][0];
+
+	squares[2][0] = new King(WHITE);
+	whiteKing = squares[2][0];
+
+	squares[0][2] = new Rook(WHITE);
+	squares[7][1] = new Rook(WHITE); // Ensure checkmate on next move depending on turn
+
+	activePieceWhite[0] = squares[2][0];
+	activePieceWhite[1] = squares[0][2];
+	activePieceWhite[2] = squares[7][1];
+
+	activePieceBlack[0] = squares[0][0];
 }

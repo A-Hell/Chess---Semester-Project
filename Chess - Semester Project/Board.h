@@ -32,7 +32,6 @@ public:
 
 	Position GetPiecePosition(Piece* piece) const; // Returns the position of a given piece.
 	void setPiecePosition(Piece* piece, Position pos); // Sets the position of a given piece on the board.
-	void setupCastlingTest();
 	void promotePawn(Position position, PieceType promotionType);
 	bool movePiece(Position from, Position to, bool activeGUI, bool ghost ); // Moves a piece from one position to another
 	bool isUnderAttack(Position pos, Color byColor) const; // Checks if a given position is under attack by any pieces of the specified color.
@@ -51,6 +50,14 @@ public:
 	Position getLastMoveFrom() const;
 	Position getLastMoveTo() const;
 	Piece* getLastMovedPiece() const;
+
+	// Test Cases
+	void setupCastlingTest();
+	void setupEnPassantTest();
+	void setupPromotionTest();
+	void setupStalemateTest();
+	void setupCheckmateTest();
+	void setupFiftyMoveRuleTest();
 
 	~Board(); // Cleans up any dynamically allocated memory on game.
 };

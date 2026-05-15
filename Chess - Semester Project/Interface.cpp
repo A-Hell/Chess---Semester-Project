@@ -128,7 +128,7 @@ void Interface::renderMoveHistory(const Position moveHistory[100][2])
 
 void Interface::renderEndGame(char reason, Color winner)
 {
-	cout << BOLD+GRAY+UNDERLINE+"\n----- Game Over -----\n" + RESET;
+	cout << BOLD+GRAY+UNDERLINE+"\n\n----- Game Over -----" + RESET;
     switch (reason)
     {
         case 'C':
